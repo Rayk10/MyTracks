@@ -3,17 +3,19 @@ export async function GET(request) {
   const query = searchParams.get("q");
 
   if (!query || !query.trim()) {
-    return Response.json({ albums: [], tracks: [] });
+    return Response.json({ albums: [], tracks: [], artists: [] });
   }
 
   try {
-    const [albumRes, trackRes] = await Promise.all([
+    const [albumRes, trackRes, artistRes] = await Promise.all([
       fetch(`https://api.deezer.com/search/album?q=${encodeURIComponent(query)}&limit=10`),
       fetch(`https://api.deezer.com/search/track?q=${encodeURIComponent(query)}&limit=10`),
+      fetch(`https://api.deezer.com/search/artist?q=${encodeURIComponent(query)}&limit=8`),
     ]);
 
     const albumData = await albumRes.json();
     const trackData = await trackRes.json();
+    const artistData = await artistRes.json();
 
     const albums = (albumData.data || []).map((a) => ({
       id: `deezer-album-${a.id}`,
@@ -36,7 +38,15 @@ export async function GET(request) {
       albumTitle: t.album?.title,
     }));
 
-    return Response.json({ albums, tracks });
+    const artists = (artistData.data || []).map((ar) => ({
+      id: ar.id,
+      name: ar.name,
+      pictureUrl: ar.picture_medium,
+      nbAlbum: ar.nb_album,
+      nbFan: ar.nb_fan,
+    }));
+
+    return Response.json({ albums, tracks, artists });
   } catch (err) {
     return Response.json({ error: "Erreur lors de la recherche Deezer" }, { status: 500 });
   }
