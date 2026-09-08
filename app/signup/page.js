@@ -21,29 +21,20 @@ export default function SignupPage() {
     setLoading(true);
     const supabase = createClient();
 
-    // 1. Creer le compte (email + mot de passe)
+    // 1. Creer le compte (email + mot de passe), le profil est cree automatiquement
+    // cote serveur grace au trigger SQL (voir handle_new_user)
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: { pseudo: pseudo.trim() },
+      },
     });
 
     if (signUpError) {
       setError(signUpError.message);
       setLoading(false);
       return;
-    }
-
-    // 2. Creer le profil associe (pseudo, etc.)
-    if (data.user) {
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: data.user.id,
-        pseudo: pseudo.trim(),
-      });
-      if (profileError) {
-        setError("Compte cree, mais erreur sur le profil : " + profileError.message);
-        setLoading(false);
-        return;
-      }
     }
 
     setLoading(false);
