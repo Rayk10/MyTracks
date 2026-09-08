@@ -4,14 +4,35 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import BottomNav from "@/components/BottomNav";
+import AlbumDetail from "@/components/AlbumDetail";
 
 export default function StatsPage() {
   const router = useRouter();
+  const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [albumRatings, setAlbumRatings] = useState([]); // { rating, item }
   const [tracksCount, setTracksCount] = useState(0);
   const [bucketOpen, setBucketOpen] = useState(null);
   const [rankingOpen, setRankingOpen] = useState(false);
+  const [albumItem, setAlbumItem] = useState(null);
+
+  const loadStats = async (uid) => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("album_ratings")
+      .select("rating, catalog_items(*)")
+      .eq("user_id", uid);
+
+    const list = (data || [])
+      .filter((r) => r.catalog_items)
+      .map((r) => ({ rating: r.rating, item: r.catalog_items }));
+
+    const albums = list.filter((r) => r.item.type === "album");
+    const singles = list.filter((r) => r.item.type === "single");
+
+    setAlbumRatings(albums);
+    setTracksCount(singles.length);
+  };
 
   useEffect(() => {
     const supabase = createClient();
@@ -20,24 +41,26 @@ export default function StatsPage() {
         router.replace("/");
         return;
       }
-
-      const { data } = await supabase
-        .from("album_ratings")
-        .select("rating, catalog_items(*)")
-        .eq("user_id", session.user.id);
-
-      const list = (data || [])
-        .filter((r) => r.catalog_items)
-        .map((r) => ({ rating: r.rating, item: r.catalog_items }));
-
-      const albums = list.filter((r) => r.item.type === "album");
-      const singles = list.filter((r) => r.item.type === "single");
-
-      setAlbumRatings(albums);
-      setTracksCount(singles.length);
+      setUserId(session.user.id);
+      await loadStats(session.user.id);
       setLoading(false);
     });
   }, [router]);
+
+  const openAlbum = (catalogItem) => {
+    setAlbumItem({
+      id: catalogItem.id,
+      type: "album",
+      title: catalogItem.title,
+      artist: catalogItem.artist,
+      coverUrl: catalogItem.cover_url,
+      deezerId: catalogItem.deezer_id,
+    });
+  };
+
+  const handleAlbumSaved = async () => {
+    if (userId) await loadStats(userId);
+  };
 
   if (loading) {
     return (
@@ -113,7 +136,11 @@ export default function StatsPage() {
                 {items
                   .sort((a, b) => b.rating - a.rating)
                   .map((r) => (
-                    <div key={r.item.id} className="flex items-center justify-between text-xs">
+                    <div
+                      key={r.item.id}
+                      onClick={() => openAlbum(r.item)}
+                      className="flex items-center justify-between text-xs cursor-pointer"
+                    >
                       <span className="truncate">{r.item.title}</span>
                       <span className="text-mtgold font-bold flex-shrink-0 ml-2">{r.rating}</span>
                     </div>
@@ -134,7 +161,11 @@ export default function StatsPage() {
           </div>
           <div className="px-4 pb-10 flex flex-col gap-3">
             {ranking.map((r, i) => (
-              <div key={r.item.id} className="flex items-center gap-3">
+              <div
+                key={r.item.id}
+                onClick={() => openAlbum(r.item)}
+                className="flex items-center gap-3 cursor-pointer"
+              >
                 <span className="text-xs text-zinc-500 w-5">{i + 1}</span>
                 {r.item.cover_url ? (
                   <img src={r.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
@@ -151,6 +182,13 @@ export default function StatsPage() {
           </div>
         </div>
       )}
+
+      <AlbumDetail
+        item={albumItem}
+        userId={userId}
+        onClose={() => setAlbumItem(null)}
+        onSaved={handleAlbumSaved}
+      />
 
       <BottomNav />
     </div>

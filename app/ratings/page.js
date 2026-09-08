@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import BottomNav from "@/components/BottomNav";
 import RatingSheet from "@/components/RatingSheet";
+import AlbumDetail from "@/components/AlbumDetail";
 
 export default function RatingsPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function RatingsPage() {
   const [subTab, setSubTab] = useState("albums");
   const [sortMode, setSortMode] = useState("best");
   const [ratingItem, setRatingItem] = useState(null);
+  const [albumItem, setAlbumItem] = useState(null);
 
   const loadRatings = async (uid) => {
     const supabase = createClient();
@@ -51,8 +53,20 @@ export default function RatingsPage() {
     });
   }, [router]);
 
+  const openItem = (item) => {
+    if (item.type === "album") {
+      setAlbumItem(item);
+    } else {
+      setRatingItem(item);
+    }
+  };
+
   const handleRatingSaved = async (itemId, value) => {
     setRatingItem(null);
+    if (userId) await loadRatings(userId);
+  };
+
+  const handleAlbumSaved = async (itemId, value) => {
     if (userId) await loadRatings(userId);
   };
 
@@ -115,7 +129,7 @@ export default function RatingsPage() {
         {sorted.map((item) => (
           <div
             key={item.id}
-            onClick={() => setRatingItem(item)}
+            onClick={() => openItem(item)}
             className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2 cursor-pointer"
           >
             {item.coverUrl ? (
@@ -140,6 +154,13 @@ export default function RatingsPage() {
         currentRating={ratingItem ? ratingItem.rating : undefined}
         onClose={() => setRatingItem(null)}
         onSaved={handleRatingSaved}
+      />
+
+      <AlbumDetail
+        item={albumItem}
+        userId={userId}
+        onClose={() => setAlbumItem(null)}
+        onSaved={handleAlbumSaved}
       />
 
       <BottomNav />
