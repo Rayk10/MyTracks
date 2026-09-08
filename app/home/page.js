@@ -17,7 +17,7 @@ export default function HomePage() {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
-  const [activeFilter, setActiveFilter] = useState(null); // null | "artist" | "album" | "track"
+  const [activeFilter, setActiveFilter] = useState(null);
 
   const [playingId, setPlayingId] = useState(null);
   const audioRef = useRef(null);
@@ -63,9 +63,10 @@ export default function HomePage() {
     if (!query.trim()) return;
     setSearching(true);
     setSearchError("");
+    setActiveFilter(null);
     try {
-      const res = await fetch(`/api/deezer-search?q=${encodeURIComponent(query)}`);
-      if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+      const res = await fetch("/api/deezer-search?q=" + encodeURIComponent(query));
+      if (!res.ok) throw new Error("Erreur serveur (" + res.status + ")");
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setResults(data.results || []);
@@ -81,7 +82,7 @@ export default function HomePage() {
     setLoadingArtist(true);
     setArtistAlbums([]);
     try {
-      const res = await fetch(`/api/deezer-artist?id=${artist.artistId}`);
+      const res = await fetch("/api/deezer-artist?id=" + artist.artistId);
       const data = await res.json();
       setArtistAlbums(data.albums || []);
     } catch (err) {
@@ -94,7 +95,7 @@ export default function HomePage() {
   const togglePreview = (item) => {
     if (!item.previewUrl) return;
     if (playingId === item.id) {
-      audioRef.current?.pause();
+      if (audioRef.current) audioRef.current.pause();
       setPlayingId(null);
     } else {
       if (audioRef.current) {
@@ -106,7 +107,7 @@ export default function HomePage() {
   };
 
   const handleRatingSaved = (itemId, value) => {
-    setMyRatings((prev) => ({ ...prev, [itemId]: value }));
+    setMyRatings((prev) => Object.assign({}, prev, { [itemId]: value }));
     setRatingItem(null);
   };
 
@@ -118,6 +119,10 @@ export default function HomePage() {
     );
   }
 
+  const displayedResults = activeFilter
+    ? results.filter((r) => r.kind === activeFilter)
+    : results;
+
   return (
     <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
       <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
@@ -125,12 +130,12 @@ export default function HomePage() {
       <div className="flex items-center justify-between mb-5">
         <Logo size={40} />
         <div className="w-9 h-9 rounded-full bg-mtgold text-black font-bold text-sm flex items-center justify-center">
-          {profile?.pseudo?.slice(0, 1).toUpperCase()}
+          {profile && profile.pseudo ? profile.pseudo.slice(0, 1).toUpperCase() : ""}
         </div>
       </div>
 
       <div className="bg-white/[0.04] border border-white/[0.06] rounded-2xl p-4 mb-6">
-        <p className="text-base font-extrabold mb-0.5">Salut, {profile?.pseudo} 👋</p>
+        <p className="text-base font-extrabold mb-0.5">Salut, {profile ? profile.pseudo : ""} 👋</p>
         <p className="text-xs text-zinc-400 mb-4">Qu&apos;est-ce qu&apos;on ecoute aujourd&apos;hui ?</p>
 
         <form onSubmit={handleSearch} className="flex gap-2">
@@ -150,34 +155,43 @@ export default function HomePage() {
         </form>
       </div>
 
-      {searchError && <p className="text-red-400 text-sm mb-6">{searchError}</p>}
+      {searchError ? <p className="text-red-400 text-sm mb-6">{searchError}</p> : null}
 
-      {results.length > 0 && (
+      {results.length > 0 ? (
         <div className="flex gap-2 mb-5">
-          {[
-            { key: "artist", label: "Artistes" },
-            { key: "album", label: "Albums" },
-            { key: "track", label: "Singles" },
-          ].map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setActiveFilter((prev) => (prev === f.key ? null : f.key))}
-              className={`flex-1 rounded-full py-2 text-xs font-bold transition-colors ${
-                activeFilter === f.key ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+          <button
+            onClick={() => setActiveFilter(activeFilter === "artist" ? null : "artist")}
+            className={
+              "flex-1 rounded-full py-2 text-xs font-bold transition-colors " +
+              (activeFilter === "artist" ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300")
+            }
+          >
+            Artistes
+          </button>
+          <button
+            onClick={() => setActiveFilter(activeFilter === "album" ? null : "album")}
+            className={
+              "flex-1 rounded-full py-2 text-xs font-bold transition-colors " +
+              (activeFilter === "album" ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300")
+            }
+          >
+            Albums
+          </button>
+          <button
+            onClick={() => setActiveFilter(activeFilter === "track" ? null : "track")}
+            className={
+              "flex-1 rounded-full py-2 text-xs font-bold transition-colors " +
+              (activeFilter === "track" ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300")
+            }
+          >
+            Singles
+          </button>
         </div>
-      )}
+      ) : null}
 
-      {(() => {
-        const displayed = activeFilter ? results.filter((r) => r.kind === activeFilter) : results;
-        return (
-          displayed.length > 0 && (
-            <div className="flex flex-col gap-3 mb-8">
-              {displayed.map((item) => {
+      {displayedResults.length > 0 ? (
+        <div className="flex flex-col gap-3 mb-8">
+          {displayedResults.map((item) => {
             if (item.kind === "artist") {
               return (
                 <div
@@ -202,14 +216,14 @@ export default function HomePage() {
 
             return (
               <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2">
-                <div className="relative flex-shrink-0" onClick={() => setRatingItem(item)}>
+                <div className="flex-shrink-0 cursor-pointer" onClick={() => setRatingItem(item)}>
                   {item.coverUrl ? (
                     <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-zinc-800" />
                   )}
                 </div>
-                <div className="flex-1 min-w-0" onClick={() => setRatingItem(item)}>
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setRatingItem(item)}>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium truncate">{item.title}</p>
                     <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
@@ -218,49 +232,54 @@ export default function HomePage() {
                   </div>
                   <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
                 </div>
-                {item.previewUrl && (
+                {item.previewUrl ? (
                   <button
                     onClick={() => togglePreview(item)}
                     className="w-8 h-8 rounded-full bg-mtgold text-black flex items-center justify-center flex-shrink-0 text-xs active:scale-90 transition-transform"
                   >
-                    {playingId === item.id ? "❚❚" : "▶"}
+                    {playingId === item.id ? "II" : "▶"}
                   </button>
-                )}
-                {myRatings[item.id] !== undefined && (
+                ) : null}
+                {myRatings[item.id] !== undefined ? (
                   <span className="text-mtgold text-xs font-bold flex-shrink-0">
                     {myRatings[item.id]}/{item.kind === "album" ? 10 : 5}
                   </span>
-                )}
+                ) : null}
               </div>
             );
           })}
-            </div>
-          )
-        );
-      })()}
+        </div>
+      ) : null}
 
-      {selectedArtist && (
+      {selectedArtist ? (
         <div className="fixed inset-0 bg-black z-30 overflow-y-auto max-w-md mx-auto">
           <div className="flex items-center gap-3 px-4 pt-6 pb-4">
             <button onClick={() => setSelectedArtist(null)} className="text-xl">
               ←
             </button>
             <div className="flex items-center gap-3">
-              {selectedArtist.pictureUrl && (
+              {selectedArtist.pictureUrl ? (
                 <img src={selectedArtist.pictureUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
-              )}
+              ) : null}
               <p className="font-bold text-base">{selectedArtist.name}</p>
             </div>
           </div>
 
           <div className="px-4 pb-10">
-            {loadingArtist && <p className="text-zinc-400 text-sm">Chargement des albums...</p>}
-            {!loadingArtist && artistAlbums.length === 0 && (
+            {loadingArtist ? <p className="text-zinc-400 text-sm">Chargement des albums...</p> : null}
+            {!loadingArtist && artistAlbums.length === 0 ? (
               <p className="text-zinc-400 text-sm">Aucun album trouve pour cet artiste.</p>
-            )}
+            ) : null}
             <div className="grid grid-cols-2 gap-3">
               {artistAlbums.map((item) => (
-                <div key={item.id} className="cursor-pointer" onClick={() => { setSelectedArtist(null); setRatingItem(item); }}>
+                <div
+                  key={item.id}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setSelectedArtist(null);
+                    setRatingItem(item);
+                  }}
+                >
                   <div className="relative">
                     {item.coverUrl ? (
                       <img src={item.coverUrl} alt="" className="w-full aspect-square rounded-xl object-cover" />
@@ -270,20 +289,22 @@ export default function HomePage() {
                     <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
                       ALBUM
                     </span>
-                    {myRatings[item.id] !== undefined && (
+                    {myRatings[item.id] !== undefined ? (
                       <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">
                         {myRatings[item.id]}/10
                       </span>
-                    )}
+                    ) : null}
                   </div>
                   <p className="text-sm font-semibold mt-1.5 truncate">{item.title}</p>
-                  {item.releaseDate && <p className="text-xs text-zinc-400 truncate">{item.releaseDate.slice(0, 4)}</p>}
+                  {item.releaseDate ? (
+                    <p className="text-xs text-zinc-400 truncate">{item.releaseDate.slice(0, 4)}</p>
+                  ) : null}
                 </div>
               ))}
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       <RatingSheet
         item={ratingItem}
