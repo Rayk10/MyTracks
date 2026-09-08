@@ -253,19 +253,38 @@ export default function HomePage() {
 
       {selectedArtist ? (
         <div className="fixed inset-0 bg-black z-30 overflow-y-auto max-w-md mx-auto">
-          <div className="flex items-center gap-3 px-4 pt-6 pb-4">
-            <button onClick={() => setSelectedArtist(null)} className="text-xl">
+          <div className="relative w-full" style={{ aspectRatio: "1 / 0.9" }}>
+            {selectedArtist.pictureUrl ? (
+              <img
+                src={selectedArtist.pictureUrl.replace("medium", "big")}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-zinc-800" />
+            )}
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.85) 85%, #000 100%)" }}
+            />
+            <button
+              onClick={() => setSelectedArtist(null)}
+              className="absolute top-6 left-4 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-xl"
+            >
               ←
             </button>
-            <div className="flex items-center gap-3">
-              {selectedArtist.pictureUrl ? (
-                <img src={selectedArtist.pictureUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
+            <div className="absolute bottom-4 left-4 right-4">
+              {selectedArtist.nbFan ? (
+                <p className="text-xs text-zinc-300 mb-1">
+                  {selectedArtist.nbFan.toLocaleString("fr-FR")} fans
+                </p>
               ) : null}
-              <p className="font-bold text-base">{selectedArtist.name}</p>
+              <p className="text-3xl font-extrabold leading-tight">{selectedArtist.name}</p>
             </div>
           </div>
 
-          <div className="px-4 pb-10">
+          <div className="px-4 pt-5 pb-10">
+            <p className="text-lg font-extrabold mb-3">Albums</p>
             {loadingArtist ? <p className="text-zinc-400 text-sm">Chargement des albums...</p> : null}
             {!loadingArtist && artistAlbums.length === 0 ? (
               <p className="text-zinc-400 text-sm">Aucun album trouve pour cet artiste.</p>
