@@ -1,0 +1,158 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabaseClient";
+import BottomNav from "@/components/BottomNav";
+
+export default function StatsPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [albumRatings, setAlbumRatings] = useState([]); // { rating, item }
+  const [tracksCount, setTracksCount] = useState(0);
+  const [bucketOpen, setBucketOpen] = useState(null);
+  const [rankingOpen, setRankingOpen] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) {
+        router.replace("/");
+        return;
+      }
+
+      const { data } = await supabase
+        .from("album_ratings")
+        .select("rating, catalog_items(*)")
+        .eq("user_id", session.user.id);
+
+      const list = (data || [])
+        .filter((r) => r.catalog_items)
+        .map((r) => ({ rating: r.rating, item: r.catalog_items }));
+
+      const albums = list.filter((r) => r.item.type === "album");
+      const singles = list.filter((r) => r.item.type === "single");
+
+      setAlbumRatings(albums);
+      setTracksCount(singles.length);
+      setLoading(false);
+    });
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-mtgold text-sm">Chargement...</p>
+      </div>
+    );
+  }
+
+  const ranking = [...albumRatings].sort((a, b) => b.rating - a.rating);
+  const best = ranking[0];
+
+  const buckets = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((n) => {
+    const items = ranking.filter((r) => Math.floor(r.rating) === n);
+    return { n, items };
+  });
+  const maxBucketCount = Math.max(1, ...buckets.map((b) => b.items.length));
+
+  return (
+    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
+      <p className="text-lg font-extrabold mb-5">Statistiques</p>
+
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="bg-white/[0.04] rounded-xl p-4">
+          <p className="text-xs text-zinc-400 mb-1">Albums notes</p>
+          <p className="text-2xl font-extrabold text-mtgold">{albumRatings.length}</p>
+        </div>
+        <div className="bg-white/[0.04] rounded-xl p-4">
+          <p className="text-xs text-zinc-400 mb-1">Titres notes</p>
+          <p className="text-2xl font-extrabold text-mtgold">{tracksCount}</p>
+        </div>
+
+        {best && (
+          <div
+            onClick={() => setRankingOpen(true)}
+            className="bg-white/[0.04] rounded-xl p-4 col-span-2 cursor-pointer"
+          >
+            <p className="text-xs text-zinc-400 mb-2">Album prefere</p>
+            <div className="flex items-center gap-3">
+              {best.item.cover_url ? (
+                <img src={best.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+              ) : (
+                <div className="w-10 h-10 rounded-lg bg-zinc-800" />
+              )}
+              <div>
+                <p className="text-sm font-bold">{best.item.title}</p>
+                <p className="text-xs text-mtgold">{best.rating}/10</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <p className="text-sm font-bold text-zinc-300 mb-3">Repartition de tes notes d&apos;albums</p>
+      <div className="flex flex-col gap-1.5 mb-8">
+        {buckets.map(({ n, items }) => (
+          <div key={n}>
+            <div
+              onClick={() => items.length > 0 && setBucketOpen(bucketOpen === n ? null : n)}
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <span className="text-xs text-zinc-500 w-4">{n}</span>
+              <div className="flex-1 bg-white/10 rounded h-2">
+                <div
+                  className="bg-mtgold rounded h-2"
+                  style={{ width: `${(items.length / maxBucketCount) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs text-zinc-500 w-4">{items.length}</span>
+            </div>
+            {bucketOpen === n && items.length > 0 && (
+              <div className="bg-white/[0.03] rounded-lg mt-1.5 mb-1.5 ml-6 p-2 flex flex-col gap-2">
+                {items
+                  .sort((a, b) => b.rating - a.rating)
+                  .map((r) => (
+                    <div key={r.item.id} className="flex items-center justify-between text-xs">
+                      <span className="truncate">{r.item.title}</span>
+                      <span className="text-mtgold font-bold flex-shrink-0 ml-2">{r.rating}</span>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {rankingOpen && (
+        <div className="fixed inset-0 bg-black z-30 overflow-y-auto max-w-md mx-auto">
+          <div className="flex items-center gap-3 px-4 pt-6 pb-4">
+            <button onClick={() => setRankingOpen(false)} className="text-xl">
+              ←
+            </button>
+            <p className="font-bold text-base">Tes albums preferes</p>
+          </div>
+          <div className="px-4 pb-10 flex flex-col gap-3">
+            {ranking.map((r, i) => (
+              <div key={r.item.id} className="flex items-center gap-3">
+                <span className="text-xs text-zinc-500 w-5">{i + 1}</span>
+                {r.item.cover_url ? (
+                  <img src={r.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-zinc-800" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{r.item.title}</p>
+                  <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                </div>
+                <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <BottomNav />
+    </div>
+  );
+}
