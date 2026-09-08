@@ -10,9 +10,9 @@ export default function StatsPage() {
   const router = useRouter();
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [albumRatings, setAlbumRatings] = useState([]); // { rating, item }
+  const [albumRatings, setAlbumRatings] = useState([]);
   const [tracksCount, setTracksCount] = useState(0);
-  const [bucketOpen, setBucketOpen] = useState(null);
+  const [bucketListOpen, setBucketListOpen] = useState(null);
   const [rankingOpen, setRankingOpen] = useState(false);
   const [albumItem, setAlbumItem] = useState(null);
 
@@ -117,36 +117,22 @@ export default function StatsPage() {
       <p className="text-sm font-bold text-zinc-300 mb-3">Repartition de tes notes d&apos;albums</p>
       <div className="flex flex-col gap-1.5 mb-8">
         {buckets.map(({ n, items }) => (
-          <div key={n}>
-            <div
-              onClick={() => items.length > 0 && setBucketOpen(bucketOpen === n ? null : n)}
-              className="flex items-center gap-2 cursor-pointer"
-            >
-              <span className="text-xs text-zinc-500 w-4">{n}</span>
-              <div className="flex-1 bg-white/10 rounded h-2">
-                <div
-                  className="bg-mtgold rounded h-2"
-                  style={{ width: `${(items.length / maxBucketCount) * 100}%` }}
-                />
-              </div>
-              <span className="text-xs text-zinc-500 w-4">{items.length}</span>
+          <div
+            key={n}
+            onClick={() =>
+              items.length > 0 &&
+              setBucketListOpen({ n, items: [...items].sort((a, b) => b.rating - a.rating) })
+            }
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <span className="text-xs text-zinc-500 w-4">{n}</span>
+            <div className="flex-1 bg-white/10 rounded h-2">
+              <div
+                className="bg-mtgold rounded h-2"
+                style={{ width: `${(items.length / maxBucketCount) * 100}%` }}
+              />
             </div>
-            {bucketOpen === n && items.length > 0 && (
-              <div className="bg-white/[0.03] rounded-lg mt-1.5 mb-1.5 ml-6 p-2 flex flex-col gap-2">
-                {items
-                  .sort((a, b) => b.rating - a.rating)
-                  .map((r) => (
-                    <div
-                      key={r.item.id}
-                      onClick={() => openAlbum(r.item)}
-                      className="flex items-center justify-between text-xs cursor-pointer"
-                    >
-                      <span className="truncate">{r.item.title}</span>
-                      <span className="text-mtgold font-bold flex-shrink-0 ml-2">{r.rating}</span>
-                    </div>
-                  ))}
-              </div>
-            )}
+            <span className="text-xs text-zinc-500 w-4">{items.length}</span>
           </div>
         ))}
       </div>
@@ -167,6 +153,37 @@ export default function StatsPage() {
                 className="flex items-center gap-3 cursor-pointer"
               >
                 <span className="text-xs text-zinc-500 w-5">{i + 1}</span>
+                {r.item.cover_url ? (
+                  <img src={r.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-zinc-800" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{r.item.title}</p>
+                  <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                </div>
+                <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {bucketListOpen && (
+        <div className="fixed inset-0 bg-black z-30 overflow-y-auto max-w-md mx-auto">
+          <div className="flex items-center gap-3 px-4 pt-6 pb-4">
+            <button onClick={() => setBucketListOpen(null)} className="text-xl">
+              ←
+            </button>
+            <p className="font-bold text-base">Notes de {bucketListOpen.n}</p>
+          </div>
+          <div className="px-4 pb-10 flex flex-col gap-3">
+            {bucketListOpen.items.map((r) => (
+              <div
+                key={r.item.id}
+                onClick={() => openAlbum(r.item)}
+                className="flex items-center gap-3 cursor-pointer"
+              >
                 {r.item.cover_url ? (
                   <img src={r.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                 ) : (
