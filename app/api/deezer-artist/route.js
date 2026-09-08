@@ -38,6 +38,7 @@ export async function GET(request) {
 
     const singleReleases = rawReleases
       .filter((a) => a.record_type === "single" || a.record_type === "ep")
+      .filter((a) => a.title && a.title.trim())
       .map((a) => ({
         id: `deezer-single-${a.id}`,
         deezerId: a.id,
@@ -53,6 +54,7 @@ export async function GET(request) {
     const seenSingleIds = new Set(singleReleases.map((s) => s.deezerId));
     const topTracks = (topData.data || [])
       .filter((t) => !seenSingleIds.has(t.id))
+      .filter((t) => t.title && t.title.trim() && t.artist && t.artist.name && t.artist.name.trim())
       .map((t) => ({
         id: `deezer-track-${t.id}`,
         deezerId: t.id,
