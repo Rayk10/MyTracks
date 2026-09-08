@@ -27,6 +27,7 @@ export default function HomePage() {
 
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [artistAlbums, setArtistAlbums] = useState([]);
+  const [artistSingles, setArtistSingles] = useState([]);
   const [loadingArtist, setLoadingArtist] = useState(false);
 
   useEffect(() => {
@@ -81,12 +82,15 @@ export default function HomePage() {
     setSelectedArtist(artist);
     setLoadingArtist(true);
     setArtistAlbums([]);
+    setArtistSingles([]);
     try {
       const res = await fetch("/api/deezer-artist?id=" + artist.artistId);
       const data = await res.json();
       setArtistAlbums(data.albums || []);
+      setArtistSingles(data.singles || []);
     } catch (err) {
       setArtistAlbums([]);
+      setArtistSingles([]);
     } finally {
       setLoadingArtist(false);
     }
@@ -321,6 +325,59 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+
+            {artistSingles.length > 0 ? (
+              <>
+                <p className="text-lg font-extrabold mb-3 mt-8">Singles</p>
+                <div className="flex flex-col gap-3">
+                  {artistSingles.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2">
+                      <div
+                        className="flex-shrink-0 cursor-pointer"
+                        onClick={() => {
+                          setSelectedArtist(null);
+                          setRatingItem(item);
+                        }}
+                      >
+                        {item.coverUrl ? (
+                          <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-zinc-800" />
+                        )}
+                      </div>
+                      <div
+                        className="flex-1 min-w-0 cursor-pointer"
+                        onClick={() => {
+                          setSelectedArtist(null);
+                          setRatingItem(item);
+                        }}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-medium truncate">{item.title}</p>
+                          <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                            SINGLE
+                          </span>
+                        </div>
+                        <p className="text-xs text-zinc-400 truncate">
+                          {item.releaseDate ? item.releaseDate.slice(0, 4) : "Titre populaire"}
+                        </p>
+                      </div>
+                      {item.previewUrl ? (
+                        <button
+                          onClick={() => togglePreview(item)}
+                          className="w-8 h-8 rounded-full bg-mtgold text-black flex items-center justify-center flex-shrink-0 text-xs active:scale-90 transition-transform"
+                        >
+                          {playingId === item.id ? "II" : "▶"}
+                        </button>
+                      ) : null}
+                      {myRatings[item.id] !== undefined ? (
+                        <span className="text-mtgold text-xs font-bold flex-shrink-0">{myRatings[item.id]}/5</span>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
           </div>
         </div>
       ) : null}
