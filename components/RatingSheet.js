@@ -45,7 +45,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-end z-20" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 flex items-end z-40" onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
         className="bg-zinc-900 w-full max-w-md mx-auto rounded-t-2xl p-6"
