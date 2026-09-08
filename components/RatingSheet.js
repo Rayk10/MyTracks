@@ -29,11 +29,14 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
       preview_url: item.previewUrl || null,
     });
 
-    const { error } = await supabase.from("album_ratings").upsert({
-      user_id: userId,
-      item_id: item.id,
-      rating: ratingValue,
-    });
+    const { error } = await supabase.from("album_ratings").upsert(
+      {
+        user_id: userId,
+        item_id: item.id,
+        rating: ratingValue,
+      },
+      { onConflict: "user_id,item_id" }
+    );
 
     setSaving(false);
     if (!error) {

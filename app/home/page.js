@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabaseClient";
 import Logo from "@/components/Logo";
 import BottomNav from "@/components/BottomNav";
 import RatingSheet from "@/components/RatingSheet";
+import AlbumDetail from "@/components/AlbumDetail";
 
 export default function HomePage() {
   const router = useRouter();
@@ -22,7 +23,8 @@ export default function HomePage() {
   const [playingId, setPlayingId] = useState(null);
   const audioRef = useRef(null);
 
-  const [ratingItem, setRatingItem] = useState(null);
+  const [ratingItem, setRatingItem] = useState(null); // singles/tracks
+  const [albumItem, setAlbumItem] = useState(null); // albums
   const [myRatings, setMyRatings] = useState({});
 
   const [selectedArtist, setSelectedArtist] = useState(null);
@@ -84,7 +86,9 @@ export default function HomePage() {
     setArtistAlbums([]);
     setArtistSingles([]);
     try {
-      const res = await fetch("/api/deezer-artist?id=" + artist.artistId);
+      const res = await fetch(
+        "/api/deezer-artist?id=" + artist.artistId + "&name=" + encodeURIComponent(artist.name)
+      );
       const data = await res.json();
       setArtistAlbums(data.albums || []);
       setArtistSingles(data.singles || []);
@@ -93,6 +97,14 @@ export default function HomePage() {
       setArtistSingles([]);
     } finally {
       setLoadingArtist(false);
+    }
+  };
+
+  const openItem = (item) => {
+    if (item.type === "album") {
+      setAlbumItem(item);
+    } else {
+      setRatingItem(item);
     }
   };
 
@@ -113,6 +125,10 @@ export default function HomePage() {
   const handleRatingSaved = (itemId, value) => {
     setMyRatings((prev) => Object.assign({}, prev, { [itemId]: value }));
     setRatingItem(null);
+  };
+
+  const handleAlbumSaved = (itemId, value) => {
+    setMyRatings((prev) => Object.assign({}, prev, { [itemId]: value }));
   };
 
   if (loading) {
@@ -220,14 +236,14 @@ export default function HomePage() {
 
             return (
               <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2">
-                <div className="flex-shrink-0 cursor-pointer" onClick={() => setRatingItem(item)}>
+                <div className="flex-shrink-0 cursor-pointer" onClick={() => openItem(item)}>
                   {item.coverUrl ? (
                     <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-zinc-800" />
                   )}
                 </div>
-                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setRatingItem(item)}>
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => openItem(item)}>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium truncate">{item.title}</p>
                     <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
@@ -295,14 +311,7 @@ export default function HomePage() {
             ) : null}
             <div className="grid grid-cols-2 gap-3">
               {artistAlbums.map((item) => (
-                <div
-                  key={item.id}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setSelectedArtist(null);
-                    setRatingItem(item);
-                  }}
-                >
+                <div key={item.id} className="cursor-pointer" onClick={() => openItem(item)}>
                   <div className="relative">
                     {item.coverUrl ? (
                       <img src={item.coverUrl} alt="" className="w-full aspect-square rounded-xl object-cover" />
@@ -332,26 +341,14 @@ export default function HomePage() {
                 <div className="flex flex-col gap-3">
                   {artistSingles.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2">
-                      <div
-                        className="flex-shrink-0 cursor-pointer"
-                        onClick={() => {
-                          setSelectedArtist(null);
-                          setRatingItem(item);
-                        }}
-                      >
+                      <div className="flex-shrink-0 cursor-pointer" onClick={() => openItem(item)}>
                         {item.coverUrl ? (
                           <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
                         ) : (
                           <div className="w-12 h-12 rounded-lg bg-zinc-800" />
                         )}
                       </div>
-                      <div
-                        className="flex-1 min-w-0 cursor-pointer"
-                        onClick={() => {
-                          setSelectedArtist(null);
-                          setRatingItem(item);
-                        }}
-                      >
+                      <div className="flex-1 min-w-0 cursor-pointer" onClick={() => openItem(item)}>
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-medium truncate">{item.title}</p>
                           <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
@@ -388,6 +385,13 @@ export default function HomePage() {
         currentRating={ratingItem ? myRatings[ratingItem.id] : undefined}
         onClose={() => setRatingItem(null)}
         onSaved={handleRatingSaved}
+      />
+
+      <AlbumDetail
+        item={albumItem}
+        userId={userId}
+        onClose={() => setAlbumItem(null)}
+        onSaved={handleAlbumSaved}
       />
 
       <BottomNav />
