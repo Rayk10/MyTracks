@@ -138,64 +138,86 @@ export default function StatsPage() {
       </div>
 
       {rankingOpen && (
-        <div className="fixed inset-0 bg-black z-30 overflow-y-auto max-w-md mx-auto">
-          <div className="flex items-center gap-3 px-4 pt-6 pb-4">
-            <button onClick={() => setRankingOpen(false)} className="text-xl">
-              ←
-            </button>
-            <p className="font-bold text-base">Tes albums preferes</p>
-          </div>
-          <div className="px-4 pb-10 flex flex-col gap-3">
-            {ranking.map((r, i) => (
-              <div
-                key={r.item.id}
-                onClick={() => openAlbum(r.item)}
-                className="flex items-center gap-3 cursor-pointer"
+        <div
+          className="fixed inset-0 bg-black/70 flex items-end z-30"
+          onClick={() => setRankingOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-zinc-900 w-full max-w-md mx-auto rounded-t-2xl p-6 max-h-[75vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-bold text-base">Tes albums preferes</p>
+              <button
+                onClick={() => setRankingOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
               >
-                <span className="text-xs text-zinc-500 w-5">{i + 1}</span>
-                {r.item.cover_url ? (
-                  <img src={r.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                ) : (
-                  <div className="w-10 h-10 rounded-lg bg-zinc-800" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{r.item.title}</p>
-                  <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                ×
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {ranking.map((r, i) => (
+                <div
+                  key={r.item.id}
+                  onClick={() => openAlbum(r.item)}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  <span className="text-xs text-zinc-500 w-5">{i + 1}</span>
+                  {r.item.cover_url ? (
+                    <img src={r.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-zinc-800" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{r.item.title}</p>
+                    <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                  </div>
+                  <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
                 </div>
-                <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {bucketListOpen && (
-        <div className="fixed inset-0 bg-black z-30 overflow-y-auto max-w-md mx-auto">
-          <div className="flex items-center gap-3 px-4 pt-6 pb-4">
-            <button onClick={() => setBucketListOpen(null)} className="text-xl">
-              ←
-            </button>
-            <p className="font-bold text-base">Notes de {bucketListOpen.n}</p>
-          </div>
-          <div className="px-4 pb-10 flex flex-col gap-3">
-            {bucketListOpen.items.map((r) => (
-              <div
-                key={r.item.id}
-                onClick={() => openAlbum(r.item)}
-                className="flex items-center gap-3 cursor-pointer"
+        <div
+          className="fixed inset-0 bg-black/70 flex items-end z-30"
+          onClick={() => setBucketListOpen(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-zinc-900 w-full max-w-md mx-auto rounded-t-2xl p-6 max-h-[75vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-bold text-base">Notes de {bucketListOpen.n}</p>
+              <button
+                onClick={() => setBucketListOpen(null)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
               >
-                {r.item.cover_url ? (
-                  <img src={r.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                ) : (
-                  <div className="w-10 h-10 rounded-lg bg-zinc-800" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{r.item.title}</p>
-                  <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                ×
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {bucketListOpen.items.map((r) => (
+                <div
+                  key={r.item.id}
+                  onClick={() => openAlbum(r.item)}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  {r.item.cover_url ? (
+                    <img src={r.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-zinc-800" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{r.item.title}</p>
+                    <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                  </div>
+                  <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
                 </div>
-                <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
