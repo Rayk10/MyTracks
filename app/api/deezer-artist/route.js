@@ -1,6 +1,7 @@
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const artistId = searchParams.get("id");
+  const artistName = searchParams.get("name") || "Artiste inconnu";
 
   if (!artistId) {
     return Response.json({ error: "id manquant" }, { status: 400 });
@@ -25,7 +26,7 @@ export async function GET(request) {
         deezerId: a.id,
         type: "album",
         title: a.title,
-        artist: a.artist?.name || "Artiste inconnu",
+        artist: a.artist?.name || artistName,
         coverUrl: a.cover_medium,
         trackCount: a.nb_tracks,
         releaseDate: a.release_date,
@@ -40,7 +41,7 @@ export async function GET(request) {
         deezerId: a.id,
         type: "single",
         title: a.title,
-        artist: a.artist?.name || "Artiste inconnu",
+        artist: a.artist?.name || artistName,
         coverUrl: a.cover_medium,
         releaseDate: a.release_date,
         previewUrl: null,
