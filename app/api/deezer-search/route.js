@@ -17,15 +17,22 @@ export async function GET(request) {
     const trackData = await trackRes.json();
     const artistData = await artistRes.json();
 
-    const albums = (albumData.data || []).map((a) => ({
-      id: `deezer-album-${a.id}`,
-      deezerId: a.id,
-      type: "album",
-      title: a.title,
-      artist: a.artist?.name || "Artiste inconnu",
-      coverUrl: a.cover_medium,
-      trackCount: a.nb_tracks,
-    }));
+    const seenAlbumIds = new Set();
+    const albums = (albumData.data || [])
+      .filter((a) => {
+        if (seenAlbumIds.has(a.id)) return false;
+        seenAlbumIds.add(a.id);
+        return true;
+      })
+      .map((a) => ({
+        id: `deezer-album-${a.id}`,
+        deezerId: a.id,
+        type: "album",
+        title: a.title,
+        artist: a.artist?.name || "Artiste inconnu",
+        coverUrl: a.cover_medium,
+        trackCount: a.nb_tracks,
+      }));
 
     const tracks = (trackData.data || []).map((t) => ({
       id: `deezer-track-${t.id}`,

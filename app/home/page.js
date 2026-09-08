@@ -190,7 +190,7 @@ export default function HomePage() {
       {results.artists && results.artists.length > 0 && (
         <div className="mb-8">
           <p className="text-lg font-extrabold mb-3 -tracking-wide">Artistes</p>
-          <div className="flex gap-4 overflow-x-auto pb-1">
+          <div className="flex gap-4 overflow-x-auto pb-1 no-scrollbar">
             {results.artists.map((artist) => (
               <div
                 key={artist.id}
