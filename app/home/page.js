@@ -51,14 +51,28 @@ export default function HomePage() {
     });
   }, [router]);
 
+  const [searchError, setSearchError] = useState("");
+
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
     setSearching(true);
-    const res = await fetch(`/api/deezer-search?q=${encodeURIComponent(query)}`);
-    const data = await res.json();
-    setResults(data);
-    setSearching(false);
+    setSearchError("");
+    try {
+      const res = await fetch(`/api/deezer-search?q=${encodeURIComponent(query)}`);
+      if (!res.ok) {
+        throw new Error(`Erreur serveur (${res.status})`);
+      }
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      setResults(data);
+    } catch (err) {
+      setSearchError(err.message || "La recherche a echoue.");
+    } finally {
+      setSearching(false);
+    }
   };
 
   const togglePreview = (item) => {
@@ -150,6 +164,10 @@ export default function HomePage() {
           {searching ? "..." : "Chercher"}
         </button>
       </form>
+
+      {searchError && (
+        <p className="text-red-400 text-sm mb-6">{searchError}</p>
+      )}
 
       {results.albums.length > 0 && (
         <div className="mb-8">
