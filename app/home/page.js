@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import Logo from "@/components/Logo";
+import BottomNav from "@/components/BottomNav";
+import RatingSheet from "@/components/RatingSheet";
 
 export default function HomePage() {
   const router = useRouter();
@@ -13,9 +15,6 @@ export default function HomePage() {
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState({ albums: [], tracks: [], artists: [] });
-  const [selectedArtist, setSelectedArtist] = useState(null);
-  const [artistAlbums, setArtistAlbums] = useState([]);
-  const [loadingArtist, setLoadingArtist] = useState(false);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
 
@@ -23,9 +22,11 @@ export default function HomePage() {
   const audioRef = useRef(null);
 
   const [ratingItem, setRatingItem] = useState(null);
-  const [ratingValue, setRatingValue] = useState(5);
-  const [savingRating, setSavingRating] = useState(false);
   const [myRatings, setMyRatings] = useState({});
+
+  const [selectedArtist, setSelectedArtist] = useState(null);
+  const [artistAlbums, setArtistAlbums] = useState([]);
+  const [loadingArtist, setLoadingArtist] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -103,43 +104,9 @@ export default function HomePage() {
     }
   };
 
-  const openRating = (item) => {
-    setRatingItem(item);
-    setRatingValue(myRatings[item.id] || (item.type === "album" ? 5 : 2.5));
-  };
-
-  const saveRating = async () => {
-    if (!ratingItem || !userId) return;
-    setSavingRating(true);
-    const supabase = createClient();
-
-    await supabase.from("catalog_items").upsert({
-      id: ratingItem.id,
-      type: ratingItem.type,
-      title: ratingItem.title,
-      artist: ratingItem.artist,
-      cover_url: ratingItem.coverUrl,
-      deezer_id: String(ratingItem.deezerId),
-      preview_url: ratingItem.previewUrl || null,
-    });
-
-    const { error } = await supabase.from("album_ratings").upsert({
-      user_id: userId,
-      item_id: ratingItem.id,
-      rating: ratingValue,
-    });
-
-    setSavingRating(false);
-    if (!error) {
-      setMyRatings((prev) => ({ ...prev, [ratingItem.id]: ratingValue }));
-      setRatingItem(null);
-    }
-  };
-
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
+  const handleRatingSaved = (itemId, value) => {
+    setMyRatings((prev) => ({ ...prev, [itemId]: value }));
+    setRatingItem(null);
   };
 
   if (loading) {
@@ -156,12 +123,9 @@ export default function HomePage() {
 
       <div className="flex items-center justify-between mb-5">
         <Logo size={40} />
-        <button
-          onClick={handleLogout}
-          className="w-9 h-9 rounded-full bg-mtgold text-black font-bold text-sm flex items-center justify-center"
-        >
+        <div className="w-9 h-9 rounded-full bg-mtgold text-black font-bold text-sm flex items-center justify-center">
           {profile?.pseudo?.slice(0, 1).toUpperCase()}
-        </button>
+        </div>
       </div>
 
       <div className="bg-white/[0.04] border border-white/[0.06] rounded-2xl p-4 mb-6">
@@ -214,7 +178,7 @@ export default function HomePage() {
           <p className="text-lg font-extrabold mb-3 -tracking-wide">Albums</p>
           <div className="grid grid-cols-2 gap-3">
             {results.albums.map((item) => (
-              <div key={item.id} className="cursor-pointer" onClick={() => openRating(item)}>
+              <div key={item.id} className="cursor-pointer" onClick={() => setRatingItem(item)}>
                 <div className="relative">
                   {item.coverUrl ? (
                     <img src={item.coverUrl} alt="" className="w-full aspect-square rounded-xl object-cover" />
@@ -244,14 +208,12 @@ export default function HomePage() {
           <div className="flex flex-col gap-3">
             {results.tracks.map((item) => (
               <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2">
-                <div className="relative flex-shrink-0">
-                  {item.coverUrl ? (
-                    <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-zinc-800" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0" onClick={() => openRating(item)}>
+                {item.coverUrl ? (
+                  <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-zinc-800 flex-shrink-0" />
+                )}
+                <div className="flex-1 min-w-0" onClick={() => setRatingItem(item)}>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium truncate">{item.title}</p>
                     <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
@@ -298,7 +260,7 @@ export default function HomePage() {
             )}
             <div className="grid grid-cols-2 gap-3">
               {artistAlbums.map((item) => (
-                <div key={item.id} className="cursor-pointer" onClick={() => { setSelectedArtist(null); openRating(item); }}>
+                <div key={item.id} className="cursor-pointer" onClick={() => { setSelectedArtist(null); setRatingItem(item); }}>
                   <div className="relative">
                     {item.coverUrl ? (
                       <img src={item.coverUrl} alt="" className="w-full aspect-square rounded-xl object-cover" />
@@ -323,65 +285,15 @@ export default function HomePage() {
         </div>
       )}
 
-      {ratingItem && (
-        <div
-          className="fixed inset-0 bg-black/70 flex items-end z-20"
-          onClick={() => setRatingItem(null)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full max-w-md mx-auto rounded-t-2xl p-6"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              {ratingItem.coverUrl && (
-                <img src={ratingItem.coverUrl} alt="" className="w-14 h-14 rounded-lg object-cover" />
-              )}
-              <div>
-                <p className="font-bold text-sm">{ratingItem.title}</p>
-                <p className="text-xs text-zinc-400">{ratingItem.artist}</p>
-              </div>
-            </div>
+      <RatingSheet
+        item={ratingItem}
+        userId={userId}
+        currentRating={ratingItem ? myRatings[ratingItem.id] : undefined}
+        onClose={() => setRatingItem(null)}
+        onSaved={handleRatingSaved}
+      />
 
-            <p className="text-xs text-zinc-400 mb-2">
-              Ta note {ratingItem.type === "album" ? "d'album, sur 10" : "de titre, sur 5"}
-            </p>
-            <div className="flex items-center gap-3 mb-6">
-              <span className="text-2xl font-extrabold text-mtgold w-10">{ratingValue}</span>
-              <input
-                type="range"
-                min={0.5}
-                max={ratingItem.type === "album" ? 10 : 5}
-                step={0.5}
-                value={ratingValue}
-                onChange={(e) => setRatingValue(Number(e.target.value))}
-                className="flex-1 accent-mtgold"
-              />
-            </div>
-
-            <button
-              onClick={saveRating}
-              disabled={savingRating}
-              className="w-full bg-mtgold text-black rounded-full py-3 font-bold disabled:opacity-50 active:scale-95 transition-transform"
-            >
-              {savingRating ? "..." : "ENREGISTRER LA NOTE"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="fixed bottom-0 left-0 right-0 px-4 pb-3 max-w-md mx-auto">
-        <div className="flex items-center justify-around bg-zinc-900/95 backdrop-blur rounded-full px-3 py-2 shadow-lg">
-          <div className="flex flex-col items-center">
-            <div className="w-11 h-11 rounded-full bg-mtgold flex items-center justify-center -mt-3 shadow-[0_4px_16px_rgba(242,194,48,0.5)]">
-              <span className="text-black">⌂</span>
-            </div>
-          </div>
-          <span className="text-zinc-600 text-lg">🔍</span>
-          <span className="text-zinc-600 text-lg">★</span>
-          <span className="text-zinc-600 text-lg">📊</span>
-          <span className="text-zinc-600 text-lg">👤</span>
-        </div>
-      </div>
+      <BottomNav />
     </div>
   );
 }
