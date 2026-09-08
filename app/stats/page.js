@@ -139,12 +139,12 @@ export default function StatsPage() {
 
       {rankingOpen && (
         <div
-          className="fixed inset-0 bg-black/70 flex items-end z-30"
+          className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-30"
           onClick={() => setRankingOpen(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full max-w-md mx-auto rounded-t-2xl p-6 max-h-[75vh] overflow-y-auto"
+            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-base">Tes albums preferes</p>
@@ -182,12 +182,12 @@ export default function StatsPage() {
 
       {bucketListOpen && (
         <div
-          className="fixed inset-0 bg-black/70 flex items-end z-30"
+          className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-30"
           onClick={() => setBucketListOpen(null)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full max-w-md mx-auto rounded-t-2xl p-6 max-h-[75vh] overflow-y-auto"
+            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-base">Notes de {bucketListOpen.n}</p>
