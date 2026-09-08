@@ -2,8 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background: #0a0a0a;
+html, body {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #3a2f0f 0%, #1a1608 22%, #0a0a0a 55%, #0a0a0a 100%);
+  background-attachment: fixed;
   color: #e8e8e3;
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
 }

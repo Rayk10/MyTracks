@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
+import Logo from "@/components/Logo";
 
 export default function HomePage() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function HomePage() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState({ albums: [], tracks: [] });
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
   const [playingId, setPlayingId] = useState(null);
   const audioRef = useRef(null);
@@ -51,8 +53,6 @@ export default function HomePage() {
     });
   }, [router]);
 
-  const [searchError, setSearchError] = useState("");
-
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
@@ -60,13 +60,9 @@ export default function HomePage() {
     setSearchError("");
     try {
       const res = await fetch(`/api/deezer-search?q=${encodeURIComponent(query)}`);
-      if (!res.ok) {
-        throw new Error(`Erreur serveur (${res.status})`);
-      }
+      if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
       const data = await res.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      if (data.error) throw new Error(data.error);
       setResults(data);
     } catch (err) {
       setSearchError(err.message || "La recherche a echoue.");
@@ -131,63 +127,70 @@ export default function HomePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-mtgold">Chargement...</p>
+        <p className="text-mtgold text-sm">Chargement...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen px-6 py-8 pb-20">
+    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
       <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
 
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-mtgold text-xl font-extrabold">MYTRACKS</h1>
-        <button onClick={handleLogout} className="text-xs text-zinc-400 border border-zinc-700 rounded-lg px-3 py-1">
-          Se deconnecter
+      <div className="flex items-center justify-between mb-5">
+        <Logo size={40} />
+        <button
+          onClick={handleLogout}
+          className="w-9 h-9 rounded-full bg-mtgold text-black font-bold text-sm flex items-center justify-center"
+        >
+          {profile?.pseudo?.slice(0, 1).toUpperCase()}
         </button>
       </div>
 
-      <p className="text-lg font-bold mb-6">Salut, {profile?.pseudo} 👋</p>
+      <div className="bg-white/[0.04] border border-white/[0.06] rounded-2xl p-4 mb-6">
+        <p className="text-base font-extrabold mb-0.5">Salut, {profile?.pseudo} 👋</p>
+        <p className="text-xs text-zinc-400 mb-4">Qu&apos;est-ce qu&apos;on ecoute aujourd&apos;hui ?</p>
 
-      <form onSubmit={handleSearch} className="flex gap-2 mb-8">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Chercher un album, un titre..."
-          className="flex-1 bg-zinc-900 border border-zinc-700 rounded-full px-4 py-2 text-sm outline-none"
-        />
-        <button
-          type="submit"
-          disabled={searching}
-          className="bg-mtgold text-black rounded-full px-5 py-2 text-sm font-bold disabled:opacity-50"
-        >
-          {searching ? "..." : "Chercher"}
-        </button>
-      </form>
+        <form onSubmit={handleSearch} className="flex gap-2">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Chercher un album, un titre..."
+            className="flex-1 bg-white/10 rounded-full px-4 py-2.5 text-sm outline-none placeholder:text-zinc-400"
+          />
+          <button
+            type="submit"
+            disabled={searching}
+            className="bg-mtgold text-black rounded-full px-5 py-2 text-sm font-bold disabled:opacity-50 active:scale-95 transition-transform"
+          >
+            {searching ? "..." : "Go"}
+          </button>
+        </form>
+      </div>
 
-      {searchError && (
-        <p className="text-red-400 text-sm mb-6">{searchError}</p>
-      )}
+      {searchError && <p className="text-red-400 text-sm mb-6">{searchError}</p>}
 
       {results.albums.length > 0 && (
         <div className="mb-8">
-          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Albums</p>
+          <p className="text-lg font-extrabold mb-3 -tracking-wide">Albums</p>
           <div className="grid grid-cols-2 gap-3">
             {results.albums.map((item) => (
               <div key={item.id} className="cursor-pointer" onClick={() => openRating(item)}>
                 <div className="relative">
                   {item.coverUrl ? (
-                    <img src={item.coverUrl} alt="" className="w-full aspect-square rounded-lg object-cover" />
+                    <img src={item.coverUrl} alt="" className="w-full aspect-square rounded-xl object-cover" />
                   ) : (
-                    <div className="w-full aspect-square rounded-lg bg-zinc-800" />
+                    <div className="w-full aspect-square rounded-xl bg-zinc-800" />
                   )}
+                  <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
+                    ALBUM
+                  </span>
                   {myRatings[item.id] !== undefined && (
-                    <span className="absolute top-2 left-2 bg-mtgold text-black text-xs font-bold rounded px-1.5 py-0.5">
+                    <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">
                       {myRatings[item.id]}/10
                     </span>
                   )}
                 </div>
-                <p className="text-sm font-semibold mt-1 truncate">{item.title}</p>
+                <p className="text-sm font-semibold mt-1.5 truncate">{item.title}</p>
                 <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
               </div>
             ))}
@@ -197,23 +200,30 @@ export default function HomePage() {
 
       {results.tracks.length > 0 && (
         <div className="mb-8">
-          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Titres</p>
+          <p className="text-lg font-extrabold mb-3 -tracking-wide">Titres</p>
           <div className="flex flex-col gap-3">
             {results.tracks.map((item) => (
-              <div key={item.id} className="flex items-center gap-3">
-                {item.coverUrl ? (
-                  <img src={item.coverUrl} alt="" className="w-12 h-12 rounded object-cover flex-shrink-0" />
-                ) : (
-                  <div className="w-12 h-12 rounded bg-zinc-800 flex-shrink-0" />
-                )}
+              <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2">
+                <div className="relative flex-shrink-0">
+                  {item.coverUrl ? (
+                    <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-zinc-800" />
+                  )}
+                </div>
                 <div className="flex-1 min-w-0" onClick={() => openRating(item)}>
-                  <p className="text-sm font-medium truncate">{item.title}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-medium truncate">{item.title}</p>
+                    <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                      SINGLE
+                    </span>
+                  </div>
                   <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
                 </div>
                 {item.previewUrl && (
                   <button
                     onClick={() => togglePreview(item)}
-                    className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0 text-xs"
+                    className="w-8 h-8 rounded-full bg-mtgold text-black flex items-center justify-center flex-shrink-0 text-xs active:scale-90 transition-transform"
                   >
                     {playingId === item.id ? "❚❚" : "▶"}
                   </button>
@@ -234,11 +244,11 @@ export default function HomePage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full rounded-t-2xl p-6"
+            className="bg-zinc-900 w-full max-w-md mx-auto rounded-t-2xl p-6"
           >
             <div className="flex items-center gap-3 mb-4">
               {ratingItem.coverUrl && (
-                <img src={ratingItem.coverUrl} alt="" className="w-14 h-14 rounded object-cover" />
+                <img src={ratingItem.coverUrl} alt="" className="w-14 h-14 rounded-lg object-cover" />
               )}
               <div>
                 <p className="font-bold text-sm">{ratingItem.title}</p>
@@ -250,7 +260,7 @@ export default function HomePage() {
               Ta note {ratingItem.type === "album" ? "d'album, sur 10" : "de titre, sur 5"}
             </p>
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-2xl font-extrabold text-mtgold">{ratingValue}</span>
+              <span className="text-2xl font-extrabold text-mtgold w-10">{ratingValue}</span>
               <input
                 type="range"
                 min={0.5}
@@ -265,13 +275,27 @@ export default function HomePage() {
             <button
               onClick={saveRating}
               disabled={savingRating}
-              className="w-full bg-mtgold text-black rounded-lg py-3 font-bold disabled:opacity-50"
+              className="w-full bg-mtgold text-black rounded-full py-3 font-bold disabled:opacity-50 active:scale-95 transition-transform"
             >
               {savingRating ? "..." : "ENREGISTRER LA NOTE"}
             </button>
           </div>
         </div>
       )}
+
+      <div className="fixed bottom-0 left-0 right-0 px-4 pb-3 max-w-md mx-auto">
+        <div className="flex items-center justify-around bg-zinc-900/95 backdrop-blur rounded-full px-3 py-2 shadow-lg">
+          <div className="flex flex-col items-center">
+            <div className="w-11 h-11 rounded-full bg-mtgold flex items-center justify-center -mt-3 shadow-[0_4px_16px_rgba(242,194,48,0.5)]">
+              <span className="text-black">⌂</span>
+            </div>
+          </div>
+          <span className="text-zinc-600 text-lg">🔍</span>
+          <span className="text-zinc-600 text-lg">★</span>
+          <span className="text-zinc-600 text-lg">📊</span>
+          <span className="text-zinc-600 text-lg">👤</span>
+        </div>
+      </div>
     </div>
   );
 }
