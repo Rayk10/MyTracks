@@ -14,9 +14,10 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState({ albums: [], tracks: [], artists: [] });
+  const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [activeFilter, setActiveFilter] = useState(null); // null | "artist" | "album" | "track"
 
   const [playingId, setPlayingId] = useState(null);
   const audioRef = useRef(null);
@@ -67,7 +68,7 @@ export default function HomePage() {
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      setResults(data);
+      setResults(data.results || []);
     } catch (err) {
       setSearchError(err.message || "La recherche a echoue.");
     } finally {
@@ -80,7 +81,7 @@ export default function HomePage() {
     setLoadingArtist(true);
     setArtistAlbums([]);
     try {
-      const res = await fetch(`/api/deezer-artist?id=${artist.id}`);
+      const res = await fetch(`/api/deezer-artist?id=${artist.artistId}`);
       const data = await res.json();
       setArtistAlbums(data.albums || []);
     } catch (err) {
@@ -136,7 +137,7 @@ export default function HomePage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Chercher un album, un titre..."
+            placeholder="Chercher un album, un titre, un artiste..."
             className="flex-1 bg-white/10 rounded-full px-4 py-2.5 text-sm outline-none placeholder:text-zinc-400"
           />
           <button
@@ -151,73 +152,68 @@ export default function HomePage() {
 
       {searchError && <p className="text-red-400 text-sm mb-6">{searchError}</p>}
 
-      {results.artists && results.artists.length > 0 && (
-        <div className="mb-8">
-          <p className="text-lg font-extrabold mb-3 -tracking-wide">Artistes</p>
-          <div className="flex gap-4 overflow-x-auto pb-1 no-scrollbar">
-            {results.artists.map((artist) => (
-              <div
-                key={artist.id}
-                onClick={() => openArtist(artist)}
-                className="flex flex-col items-center flex-shrink-0 w-20 cursor-pointer"
-              >
-                {artist.pictureUrl ? (
-                  <img src={artist.pictureUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-zinc-800" />
-                )}
-                <p className="text-xs font-semibold mt-1.5 text-center truncate w-full">{artist.name}</p>
-              </div>
-            ))}
-          </div>
+      {results.length > 0 && (
+        <div className="flex gap-2 mb-5">
+          {[
+            { key: "artist", label: "Artistes" },
+            { key: "album", label: "Albums" },
+            { key: "track", label: "Singles" },
+          ].map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setActiveFilter((prev) => (prev === f.key ? null : f.key))}
+              className={`flex-1 rounded-full py-2 text-xs font-bold transition-colors ${
+                activeFilter === f.key ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
       )}
 
-      {results.albums.length > 0 && (
-        <div className="mb-8">
-          <p className="text-lg font-extrabold mb-3 -tracking-wide">Albums</p>
-          <div className="grid grid-cols-2 gap-3">
-            {results.albums.map((item) => (
-              <div key={item.id} className="cursor-pointer" onClick={() => setRatingItem(item)}>
-                <div className="relative">
-                  {item.coverUrl ? (
-                    <img src={item.coverUrl} alt="" className="w-full aspect-square rounded-xl object-cover" />
+      {(() => {
+        const displayed = activeFilter ? results.filter((r) => r.kind === activeFilter) : results;
+        return (
+          displayed.length > 0 && (
+            <div className="flex flex-col gap-3 mb-8">
+              {displayed.map((item) => {
+            if (item.kind === "artist") {
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => openArtist(item)}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  {item.pictureUrl ? (
+                    <img src={item.pictureUrl} alt="" className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
                   ) : (
-                    <div className="w-full aspect-square rounded-xl bg-zinc-800" />
+                    <div className="w-12 h-12 rounded-full bg-zinc-800 flex-shrink-0" />
                   )}
-                  <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
-                    ALBUM
-                  </span>
-                  {myRatings[item.id] !== undefined && (
-                    <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">
-                      {myRatings[item.id]}/10
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{item.name}</p>
+                    <span className="bg-white/10 text-zinc-300 text-[10px] font-bold rounded px-1.5 py-0.5">
+                      ARTISTE
                     </span>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2">
+                <div className="relative flex-shrink-0" onClick={() => setRatingItem(item)}>
+                  {item.coverUrl ? (
+                    <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-zinc-800" />
                   )}
                 </div>
-                <p className="text-sm font-semibold mt-1.5 truncate">{item.title}</p>
-                <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {results.tracks.length > 0 && (
-        <div className="mb-8">
-          <p className="text-lg font-extrabold mb-3 -tracking-wide">Titres</p>
-          <div className="flex flex-col gap-3">
-            {results.tracks.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2">
-                {item.coverUrl ? (
-                  <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-zinc-800 flex-shrink-0" />
-                )}
                 <div className="flex-1 min-w-0" onClick={() => setRatingItem(item)}>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium truncate">{item.title}</p>
                     <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
-                      SINGLE
+                      {item.kind === "album" ? "ALBUM" : "SINGLE"}
                     </span>
                   </div>
                   <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
@@ -231,13 +227,17 @@ export default function HomePage() {
                   </button>
                 )}
                 {myRatings[item.id] !== undefined && (
-                  <span className="text-mtgold text-xs font-bold flex-shrink-0">{myRatings[item.id]}/5</span>
+                  <span className="text-mtgold text-xs font-bold flex-shrink-0">
+                    {myRatings[item.id]}/{item.kind === "album" ? 10 : 5}
+                  </span>
                 )}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            );
+          })}
+            </div>
+          )
+        );
+      })()}
 
       {selectedArtist && (
         <div className="fixed inset-0 bg-black z-30 overflow-y-auto max-w-md mx-auto">
