@@ -16,6 +16,12 @@ export default function ProfilePage() {
   const [myAlbums, setMyAlbums] = useState([]);
   const [pickerSlot, setPickerSlot] = useState(null);
 
+  const [friends, setFriends] = useState([]);
+  const [friendSearchOpen, setFriendSearchOpen] = useState(false);
+  const [friendQuery, setFriendQuery] = useState("");
+  const [friendResults, setFriendResults] = useState([]);
+  const [friendSearching, setFriendSearching] = useState(false);
+
   const loadFeatured = async (supabase, uid) => {
     const { data } = await supabase
       .from("featured_albums")
@@ -27,6 +33,18 @@ export default function ProfilePage() {
       if (row.catalog_items) arr[row.slot] = row.catalog_items;
     });
     setFeatured(arr);
+  };
+
+  const loadFriends = async (supabase, uid) => {
+    const { data } = await supabase
+      .from("friendships")
+      .select("friend_id, profiles!friendships_friend_id_fkey(pseudo)")
+      .eq("user_id", uid);
+    setFriends(
+      (data || [])
+        .filter((f) => f.profiles)
+        .map((f) => ({ id: f.friend_id, pseudo: f.profiles.pseudo }))
+    );
   };
 
   useEffect(() => {
@@ -61,6 +79,7 @@ export default function ProfilePage() {
       });
 
       await loadFeatured(supabase, session.user.id);
+      await loadFriends(supabase, session.user.id);
       setLoading(false);
     });
   }, [router]);
@@ -86,6 +105,31 @@ export default function ProfilePage() {
     const updated = [...featured];
     updated[slot] = null;
     setFeatured(updated);
+  };
+
+  const searchFriends = async (e) => {
+    e.preventDefault();
+    if (!friendQuery.trim() || !userId) return;
+    setFriendSearching(true);
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, pseudo")
+      .ilike("pseudo", `%${friendQuery.trim()}%`)
+      .neq("id", userId)
+      .limit(20);
+    setFriendResults(data || []);
+    setFriendSearching(false);
+  };
+
+  const addFriend = async (friend) => {
+    if (!userId) return;
+    const supabase = createClient();
+    await supabase.from("friendships").upsert(
+      { user_id: userId, friend_id: friend.id },
+      { onConflict: "user_id,friend_id" }
+    );
+    setFriends((prev) => (prev.some((f) => f.id === friend.id) ? prev : [...prev, friend]));
   };
 
   const handleLogout = async () => {
@@ -121,6 +165,41 @@ export default function ProfilePage() {
           <p className="text-xs text-zinc-400">Titres notes</p>
         </div>
       </div>
+
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs uppercase tracking-wide text-zinc-500">Amis</p>
+        <button
+          onClick={() => {
+            setFriendSearchOpen(true);
+            setFriendQuery("");
+            setFriendResults([]);
+          }}
+          className="w-7 h-7 rounded-full bg-mtgold text-black flex items-center justify-center text-sm font-bold"
+        >
+          +
+        </button>
+      </div>
+
+      {friends.length === 0 ? (
+        <p className="text-zinc-400 text-sm mb-8">
+          Tu n&apos;as encore ajoute aucun ami. Tape sur le + pour en chercher.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2 mb-8">
+          {friends.map((f) => (
+            <div
+              key={f.id}
+              onClick={() => router.push(`/friends/${f.id}`)}
+              className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2 cursor-pointer"
+            >
+              <div className="w-9 h-9 rounded-full bg-mtgold text-black font-bold text-xs flex items-center justify-center flex-shrink-0">
+                {f.pseudo.slice(0, 1).toUpperCase()}
+              </div>
+              <p className="text-sm font-medium flex-1">{f.pseudo}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Mes 4 albums preferes</p>
       <div className="grid grid-cols-4 gap-2 mb-10">
@@ -167,12 +246,12 @@ export default function ProfilePage() {
 
       {pickerSlot !== null && (
         <div
-          className="fixed inset-0 bg-black/70 flex items-end z-20"
+          className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-30"
           onClick={() => setPickerSlot(null)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full max-w-md mx-auto rounded-t-2xl p-6 max-h-[75vh] overflow-y-auto"
+            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
           >
             <p className="font-bold text-sm mb-4">Choisir un album</p>
             {myAlbums.length === 0 && (
@@ -198,6 +277,72 @@ export default function ProfilePage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {friendSearchOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-30"
+          onClick={() => setFriendSearchOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-bold text-base">Chercher un ami</p>
+              <button
+                onClick={() => setFriendSearchOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={searchFriends} className="flex gap-2 mb-4">
+              <input
+                autoFocus
+                value={friendQuery}
+                onChange={(e) => setFriendQuery(e.target.value)}
+                placeholder="Pseudo..."
+                className="flex-1 bg-white/[0.06] rounded-full px-4 py-2 text-sm outline-none"
+              />
+              <button
+                type="submit"
+                disabled={friendSearching}
+                className="bg-mtgold text-black rounded-full px-5 py-2 text-sm font-bold disabled:opacity-50"
+              >
+                {friendSearching ? "..." : "Go"}
+              </button>
+            </form>
+
+            {friendResults.length === 0 && (
+              <p className="text-zinc-400 text-sm">Cherche un pseudo pour trouver quelqu&apos;un.</p>
+            )}
+
+            <div className="flex flex-col gap-3">
+              {friendResults.map((f) => {
+                const already = friends.some((fr) => fr.id === f.id);
+                return (
+                  <div key={f.id} className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-mtgold text-black font-bold text-xs flex items-center justify-center flex-shrink-0">
+                      {f.pseudo.slice(0, 1).toUpperCase()}
+                    </div>
+                    <p className="text-sm font-medium flex-1">{f.pseudo}</p>
+                    <button
+                      onClick={() => addFriend(f)}
+                      disabled={already}
+                      className={`text-xs font-bold rounded-full px-3 py-1.5 flex-shrink-0 ${
+                        already ? "bg-mtgold text-black" : "bg-white/10 text-white"
+                      }`}
+                    >
+                      {already ? "Ajoute" : "Ajouter"}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
