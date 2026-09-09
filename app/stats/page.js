@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabaseClient";
 import BottomNav from "@/components/BottomNav";
 import AlbumDetail from "@/components/AlbumDetail";
 import RatingSheet from "@/components/RatingSheet";
+import useBackButtonClose from "@/hooks/useBackButtonClose";
 
 export default function StatsPage() {
   const router = useRouter();
@@ -24,6 +25,10 @@ export default function StatsPage() {
 
   const [statsListOpen, setStatsListOpen] = useState(null); // "albums" | "singles" | "artists" | null
   const [statsSort, setStatsSort] = useState("recent");
+
+  useBackButtonClose(!!albumItem, () => setAlbumItem(null));
+  useBackButtonClose(!!ratingItem, () => setRatingItem(null));
+  useBackButtonClose(!!statsListOpen, () => setStatsListOpen(null));
 
   const loadStats = async (uid) => {
     const supabase = createClient();

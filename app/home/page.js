@@ -7,6 +7,7 @@ import Logo from "@/components/Logo";
 import BottomNav from "@/components/BottomNav";
 import RatingSheet from "@/components/RatingSheet";
 import AlbumDetail from "@/components/AlbumDetail";
+import useBackButtonClose from "@/hooks/useBackButtonClose";
 
 function HomePageContent() {
   const router = useRouter();
@@ -39,6 +40,10 @@ function HomePageContent() {
   const [suggested, setSuggested] = useState([]);
   const [suggestedLabel, setSuggestedLabel] = useState("");
   const [trending, setTrending] = useState([]);
+
+  useBackButtonClose(!!selectedArtist, () => setSelectedArtist(null));
+  useBackButtonClose(!!albumItem, () => setAlbumItem(null));
+  useBackButtonClose(!!ratingItem, () => setRatingItem(null));
 
   useEffect(() => {
     const supabase = createClient();

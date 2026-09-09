@@ -28,7 +28,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       setLoading(true);
       const supabase = createClient();
 
-      await supabase.from("catalog_items").upsert({
+      const { error: initialCatalogError } = await supabase.from("catalog_items").upsert({
         id: item.id,
         type: "album",
         title: item.title,
@@ -36,6 +36,9 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
         cover_url: item.coverUrl,
         deezer_id: item.deezerId ? String(item.deezerId) : item.deezer_id || null,
       });
+      if (initialCatalogError) {
+        setSaveError("Erreur (chargement) : " + initialCatalogError.message);
+      }
 
       const [ratingRes, trackRatingsRes, deezerRes] = await Promise.all([
         supabase
@@ -110,10 +113,28 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const computed = trackValues.length > 0 ? trackValues.reduce((s, v) => s + v, 0) / trackValues.length * 2 : null;
   const displayedRating = computed !== null ? computed : directRating;
 
+  const [saveError, setSaveError] = useState("");
+
   const saveAlbumRating = async (rating, newComment) => {
     setSaving(true);
+    setSaveError("");
     const supabase = createClient();
-    await supabase.from("album_ratings").upsert(
+
+    const { error: catalogError } = await supabase.from("catalog_items").upsert({
+      id: item.id,
+      type: "album",
+      title: item.title,
+      artist: item.artist,
+      cover_url: item.coverUrl,
+      deezer_id: item.deezerId ? String(item.deezerId) : item.deezer_id || null,
+    });
+    if (catalogError) {
+      setSaving(false);
+      setSaveError("Erreur (fiche) : " + catalogError.message);
+      return false;
+    }
+
+    const { error } = await supabase.from("album_ratings").upsert(
       {
         user_id: userId,
         item_id: item.id,
@@ -123,7 +144,12 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       { onConflict: "user_id,item_id" }
     );
     setSaving(false);
+    if (error) {
+      setSaveError("Erreur (note) : " + error.message);
+      return false;
+    }
     if (onSaved) onSaved(item.id, rating);
+    return true;
   };
 
   const handleSliderChange = (value) => {
@@ -131,19 +157,22 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   };
 
   const handleSaveClick = async () => {
-    await saveAlbumRating(directRating, comment);
-    setJustSaved(true);
-    setTimeout(() => {
-      onClose();
-    }, 600);
+    const ok = await saveAlbumRating(directRating, comment);
+    if (ok) {
+      setJustSaved(true);
+      setTimeout(() => {
+        onClose();
+      }, 600);
+    }
   };
 
   const handleTrackRate = async (index, value) => {
     const updated = { ...trackRatings, [index]: value };
     setTrackRatings(updated);
+    setSaveError("");
 
     const supabase = createClient();
-    await supabase.from("track_ratings").upsert(
+    const { error: trackError } = await supabase.from("track_ratings").upsert(
       {
         user_id: userId,
         item_id: item.id,
@@ -152,6 +181,10 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       },
       { onConflict: "user_id,item_id,track_index" }
     );
+    if (trackError) {
+      setSaveError("Erreur (titre) : " + trackError.message);
+      return;
+    }
 
     const values = Object.values(updated);
     const avg = (values.reduce((s, v) => s + v, 0) / values.length) * 2;
@@ -252,6 +285,8 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
           rows={3}
           className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl p-3 text-sm outline-none resize-none mb-4"
         />
+
+        {saveError && <p className="text-red-400 text-xs mb-3">{saveError}</p>}
 
         <button
           onClick={handleSaveClick}

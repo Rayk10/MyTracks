@@ -8,18 +8,24 @@ import RatingSheet from "@/components/RatingSheet";
 import AlbumDetail from "@/components/AlbumDetail";
 import ListCoverMosaic from "@/components/ListCoverMosaic";
 import CreateItemModal from "@/components/CreateItemModal";
+import useBackButtonClose from "@/hooks/useBackButtonClose";
 
 export default function RatingsPage() {
   const router = useRouter();
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [ratedItems, setRatedItems] = useState([]);
+  const [unratedCreations, setUnratedCreations] = useState([]);
   const [lists, setLists] = useState([]);
   const [subTab, setSubTab] = useState("albums");
   const [sortMode, setSortMode] = useState("best");
   const [ratingItem, setRatingItem] = useState(null);
   const [albumItem, setAlbumItem] = useState(null);
   const [createOpen, setCreateOpen] = useState(false);
+
+  useBackButtonClose(!!albumItem, () => setAlbumItem(null));
+  useBackButtonClose(!!ratingItem, () => setRatingItem(null));
+  useBackButtonClose(createOpen, () => setCreateOpen(false));
 
   const [creatingList, setCreatingList] = useState(false);
   const [newListName, setNewListName] = useState("");
@@ -45,6 +51,30 @@ export default function RatingsPage() {
         updatedAt: r.updated_at,
       }));
     setRatedItems(items);
+    return items;
+  };
+
+  const loadUnratedCreations = async (uid, ratedList) => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("catalog_items")
+      .select("*")
+      .eq("created_by", uid)
+      .order("created_at", { ascending: false });
+
+    const ratedIds = new Set((ratedList || []).map((r) => r.id));
+    const unrated = (data || [])
+      .filter((it) => !ratedIds.has(it.id))
+      .map((it) => ({
+        id: it.id,
+        type: it.type,
+        title: it.title,
+        artist: it.artist,
+        coverUrl: it.cover_url,
+        deezerId: it.deezer_id,
+        previewUrl: it.preview_url,
+      }));
+    setUnratedCreations(unrated);
   };
 
   const loadLists = async (uid) => {
@@ -71,7 +101,8 @@ export default function RatingsPage() {
         return;
       }
       setUserId(session.user.id);
-      await loadRatings(session.user.id);
+      const ratedList = await loadRatings(session.user.id);
+      await loadUnratedCreations(session.user.id, ratedList);
       await loadLists(session.user.id);
       setLoading(false);
     });
@@ -87,21 +118,34 @@ export default function RatingsPage() {
 
   const handleRatingSaved = async () => {
     setRatingItem(null);
-    if (userId) await loadRatings(userId);
+    if (userId) {
+      const ratedList = await loadRatings(userId);
+      await loadUnratedCreations(userId, ratedList);
+    }
   };
 
   const handleAlbumSaved = async () => {
-    if (userId) await loadRatings(userId);
+    if (userId) {
+      const ratedList = await loadRatings(userId);
+      await loadUnratedCreations(userId, ratedList);
+    }
   };
+
+  const [createListError, setCreateListError] = useState("");
 
   const createList = async () => {
     if (!newListName.trim() || !userId) return;
+    setCreateListError("");
     const supabase = createClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("custom_lists")
       .insert({ user_id: userId, name: newListName.trim() })
       .select()
       .single();
+    if (error) {
+      setCreateListError(error.message);
+      return;
+    }
     if (data) {
       setLists((prev) => [{ id: data.id, name: data.name, items: [] }, ...prev]);
     }
@@ -139,6 +183,36 @@ export default function RatingsPage() {
       >
         + Ajouter un album / single
       </button>
+
+      {unratedCreations.length > 0 && (
+        <div className="mb-6">
+          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">
+            Tes ajouts (pas encore notés)
+          </p>
+          <div className="flex flex-col gap-3">
+            {unratedCreations.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => openItem(item)}
+                className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2 cursor-pointer"
+              >
+                {item.coverUrl ? (
+                  <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-zinc-800 flex-shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{item.title}</p>
+                  <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
+                </div>
+                <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1.5 py-0.5 flex-shrink-0">
+                  {item.type === "album" ? "ALBUM" : "SINGLE"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-2 mb-4">
         {[
@@ -236,6 +310,8 @@ export default function RatingsPage() {
             </div>
           )}
 
+          {createListError && <p className="text-red-400 text-xs mb-3">{createListError}</p>}
+
           {lists.length === 0 && (
             <p className="text-zinc-400 text-sm">Tu n&apos;as encore aucune liste. Crée-en une pour commencer.</p>
           )}
@@ -279,8 +355,9 @@ export default function RatingsPage() {
         <CreateItemModal
           userId={userId}
           onClose={() => setCreateOpen(false)}
-          onCreated={(newItem) => {
+          onCreated={async (newItem) => {
             setCreateOpen(false);
+            if (userId) await loadUnratedCreations(userId, ratedItems);
             if (newItem.type === "album") {
               setAlbumItem(newItem);
             } else {

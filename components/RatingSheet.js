@@ -40,11 +40,14 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
     setRatingValue(isLeftHalf ? n - 0.5 : n);
   };
 
+  const [saveError, setSaveError] = useState("");
+
   const save = async () => {
     setSaving(true);
+    setSaveError("");
     const supabase = createClient();
 
-    await supabase.from("catalog_items").upsert({
+    const { error: catalogError } = await supabase.from("catalog_items").upsert({
       id: item.id,
       type: item.type,
       title: item.title,
@@ -53,6 +56,12 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
       deezer_id: item.deezerId ? String(item.deezerId) : null,
       preview_url: item.previewUrl || null,
     });
+
+    if (catalogError) {
+      setSaving(false);
+      setSaveError("Erreur (fiche) : " + catalogError.message);
+      return;
+    }
 
     const { error } = await supabase.from("album_ratings").upsert(
       {
@@ -65,13 +74,15 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
     );
 
     setSaving(false);
-    if (!error) {
-      onSaved(item.id, ratingValue);
-      setJustSaved(true);
-      setTimeout(() => {
-        onClose();
-      }, 600);
+    if (error) {
+      setSaveError("Erreur (note) : " + error.message);
+      return;
     }
+    onSaved(item.id, ratingValue);
+    setJustSaved(true);
+    setTimeout(() => {
+      onClose();
+    }, 600);
   };
 
   return (
@@ -169,6 +180,8 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
           rows={3}
           className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl p-3 text-sm outline-none resize-none mb-6"
         />
+
+        {saveError && <p className="text-red-400 text-xs mb-3">{saveError}</p>}
 
         <button
           onClick={save}
