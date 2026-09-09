@@ -108,6 +108,7 @@ export default function ProfilePage() {
   };
 
   const [friendSearchError, setFriendSearchError] = useState("");
+  const [friendSearchDone, setFriendSearchDone] = useState(false);
 
   const searchFriends = async (e) => {
     e.preventDefault();
@@ -124,6 +125,7 @@ export default function ProfilePage() {
         .limit(20);
       if (error) throw error;
       setFriendResults(data || []);
+      setFriendSearchDone(true);
     } catch (err) {
       setFriendSearchError(err.message || "La recherche a echoue.");
       setFriendResults([]);
@@ -183,6 +185,8 @@ export default function ProfilePage() {
             setFriendSearchOpen(true);
             setFriendQuery("");
             setFriendResults([]);
+            setFriendSearchDone(false);
+            setFriendSearchError("");
           }}
           className="w-7 h-7 rounded-full bg-mtgold text-black flex items-center justify-center text-sm font-bold"
         >
@@ -332,7 +336,10 @@ export default function ProfilePage() {
               <p className="text-red-400 text-sm mb-3">{friendSearchError}</p>
             )}
 
-            {friendResults.length === 0 && (
+            {friendSearchDone && friendResults.length === 0 && (
+              <p className="text-zinc-400 text-sm">Aucun utilisateur trouve pour ce pseudo.</p>
+            )}
+            {!friendSearchDone && (
               <p className="text-zinc-400 text-sm">Cherche un pseudo pour trouver quelqu&apos;un.</p>
             )}
 
