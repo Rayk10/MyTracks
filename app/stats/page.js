@@ -15,6 +15,7 @@ export default function StatsPage() {
   const [singleRatings, setSingleRatings] = useState([]);
   const [bucketListOpen, setBucketListOpen] = useState(null);
   const [singleBucketListOpen, setSingleBucketListOpen] = useState(null);
+  const [bucketSort, setBucketSort] = useState("best");
   const [rankingOpen, setRankingOpen] = useState(false);
   const [genreRankingOpen, setGenreRankingOpen] = useState(false);
   const [genreAlbumsOpen, setGenreAlbumsOpen] = useState(null);
@@ -147,6 +148,15 @@ export default function StatsPage() {
     return arr;
   };
 
+  const sortBucketItems = (items) => {
+    const arr = [...items];
+    if (bucketSort === "recent") return arr.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    if (bucketSort === "oldest") return arr.sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt));
+    if (bucketSort === "best") return arr.sort((a, b) => b.rating - a.rating);
+    if (bucketSort === "worst") return arr.sort((a, b) => a.rating - b.rating);
+    return arr;
+  };
+
   const openStatsList = (type) => {
     setStatsSort(type === "artists" ? "most" : "recent");
     setStatsListOpen(type);
@@ -218,10 +228,11 @@ export default function StatsPage() {
         {buckets.map(({ n, items }) => (
           <div
             key={n}
-            onClick={() =>
-              items.length > 0 &&
-              setBucketListOpen({ n, items: [...items].sort((a, b) => b.rating - a.rating) })
-            }
+            onClick={() => {
+              if (items.length === 0) return;
+              setBucketSort("best");
+              setBucketListOpen({ n, items });
+            }}
             className="flex items-center gap-2 cursor-pointer"
           >
             <span className="text-xs text-zinc-500 w-4">{n}</span>
@@ -241,10 +252,11 @@ export default function StatsPage() {
         {singleBuckets.map(({ n, items }) => (
           <div
             key={n}
-            onClick={() =>
-              items.length > 0 &&
-              setSingleBucketListOpen({ n, items: [...items].sort((a, b) => b.rating - a.rating) })
-            }
+            onClick={() => {
+              if (items.length === 0) return;
+              setBucketSort("best");
+              setSingleBucketListOpen({ n, items });
+            }}
             className="flex items-center gap-2 cursor-pointer"
           >
             <span className="text-xs text-zinc-500 w-4">{n}</span>
@@ -432,8 +444,20 @@ export default function StatsPage() {
                 ×
               </button>
             </div>
+
+            <select
+              value={bucketSort}
+              onChange={(e) => setBucketSort(e.target.value)}
+              className="w-full bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-2 text-xs mb-4 outline-none"
+            >
+              <option value="best">Meilleure note d&apos;abord</option>
+              <option value="worst">Moins bonne note d&apos;abord</option>
+              <option value="recent">Plus récemment ajouté</option>
+              <option value="oldest">Plus ancien</option>
+            </select>
+
             <div className="flex flex-col gap-3">
-              {bucketListOpen.items.map((r) => (
+              {sortBucketItems(bucketListOpen.items).map((r) => (
                 <div
                   key={r.item.id}
                   onClick={() => openAlbum(r.item)}
@@ -474,8 +498,20 @@ export default function StatsPage() {
                 ×
               </button>
             </div>
+
+            <select
+              value={bucketSort}
+              onChange={(e) => setBucketSort(e.target.value)}
+              className="w-full bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-2 text-xs mb-4 outline-none"
+            >
+              <option value="best">Meilleure note d&apos;abord</option>
+              <option value="worst">Moins bonne note d&apos;abord</option>
+              <option value="recent">Plus récemment ajouté</option>
+              <option value="oldest">Plus ancien</option>
+            </select>
+
             <div className="flex flex-col gap-3">
-              {singleBucketListOpen.items.map((r) => (
+              {sortBucketItems(singleBucketListOpen.items).map((r) => (
                 <div
                   key={r.item.id}
                   onClick={() => {
