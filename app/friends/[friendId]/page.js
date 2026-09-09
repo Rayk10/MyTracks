@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import RatingSheet from "@/components/RatingSheet";
 import AlbumDetail from "@/components/AlbumDetail";
+import BottomNav from "@/components/BottomNav";
 
 export default function FriendProfilePage() {
   const router = useRouter();
@@ -86,7 +87,7 @@ export default function FriendProfilePage() {
   }
 
   return (
-    <div className="min-h-screen px-4 pt-6 pb-16 max-w-md mx-auto">
+    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.back()} className="text-xl">
           ←
@@ -171,6 +172,8 @@ export default function FriendProfilePage() {
       />
 
       <AlbumDetail item={albumItem} userId={userId} onClose={() => setAlbumItem(null)} onSaved={() => {}} />
+
+      <BottomNav />
     </div>
   );
 }
