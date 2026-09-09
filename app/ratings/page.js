@@ -7,6 +7,7 @@ import BottomNav from "@/components/BottomNav";
 import RatingSheet from "@/components/RatingSheet";
 import AlbumDetail from "@/components/AlbumDetail";
 import ListCoverMosaic from "@/components/ListCoverMosaic";
+import CreateItemModal from "@/components/CreateItemModal";
 
 export default function RatingsPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function RatingsPage() {
   const [sortMode, setSortMode] = useState("best");
   const [ratingItem, setRatingItem] = useState(null);
   const [albumItem, setAlbumItem] = useState(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const [creatingList, setCreatingList] = useState(false);
   const [newListName, setNewListName] = useState("");
@@ -130,6 +132,13 @@ export default function RatingsPage() {
   return (
     <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto mt-page-enter">
       <p className="text-lg font-extrabold mb-4">Mes notes</p>
+
+      <button
+        onClick={() => setCreateOpen(true)}
+        className="w-full flex items-center justify-center gap-2 bg-white/[0.04] border border-dashed border-zinc-600 rounded-xl py-3 mb-5 text-sm font-bold text-mtgold"
+      >
+        + Ajouter un album / single
+      </button>
 
       <div className="flex gap-2 mb-4">
         {[
@@ -265,6 +274,21 @@ export default function RatingsPage() {
         onClose={() => setAlbumItem(null)}
         onSaved={handleAlbumSaved}
       />
+
+      {createOpen && (
+        <CreateItemModal
+          userId={userId}
+          onClose={() => setCreateOpen(false)}
+          onCreated={(newItem) => {
+            setCreateOpen(false);
+            if (newItem.type === "album") {
+              setAlbumItem(newItem);
+            } else {
+              setRatingItem(newItem);
+            }
+          }}
+        />
+      )}
 
       <BottomNav />
     </div>

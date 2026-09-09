@@ -51,7 +51,22 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
           .eq("item_id", item.id),
         item.deezerId || item.deezer_id
           ? fetch(`/api/deezer-album?id=${item.deezerId || item.deezer_id}`).then((r) => r.json())
-          : Promise.resolve({ tracks: [], releaseDate: null, genres: [] }),
+          : Promise.all([
+              supabase.from("catalog_items").select("genre, year").eq("id", item.id).maybeSingle(),
+              supabase
+                .from("custom_tracks")
+                .select("track_index, title")
+                .eq("item_id", item.id)
+                .order("track_index", { ascending: true }),
+            ]).then(([itemRes, tracksRes]) => ({
+              tracks: (tracksRes.data || []).map((t) => ({
+                index: t.track_index,
+                title: t.title,
+                previewUrl: null,
+              })),
+              releaseDate: itemRes.data && itemRes.data.year ? `${itemRes.data.year}-01-01` : null,
+              genres: itemRes.data && itemRes.data.genre ? [itemRes.data.genre] : [],
+            })),
       ]);
 
       if (cancelled) return;
