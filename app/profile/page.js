@@ -107,19 +107,29 @@ export default function ProfilePage() {
     setFeatured(updated);
   };
 
+  const [friendSearchError, setFriendSearchError] = useState("");
+
   const searchFriends = async (e) => {
     e.preventDefault();
     if (!friendQuery.trim() || !userId) return;
     setFriendSearching(true);
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, pseudo")
-      .ilike("pseudo", `%${friendQuery.trim()}%`)
-      .neq("id", userId)
-      .limit(20);
-    setFriendResults(data || []);
-    setFriendSearching(false);
+    setFriendSearchError("");
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, pseudo")
+        .ilike("pseudo", `%${friendQuery.trim()}%`)
+        .neq("id", userId)
+        .limit(20);
+      if (error) throw error;
+      setFriendResults(data || []);
+    } catch (err) {
+      setFriendSearchError(err.message || "La recherche a echoue.");
+      setFriendResults([]);
+    } finally {
+      setFriendSearching(false);
+    }
   };
 
   const addFriend = async (friend) => {
@@ -317,6 +327,10 @@ export default function ProfilePage() {
                 {friendSearching ? "..." : "Go"}
               </button>
             </form>
+
+            {friendSearchError && (
+              <p className="text-red-400 text-sm mb-3">{friendSearchError}</p>
+            )}
 
             {friendResults.length === 0 && (
               <p className="text-zinc-400 text-sm">Cherche un pseudo pour trouver quelqu&apos;un.</p>
