@@ -65,7 +65,12 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
 
       setTracks(deezerRes.tracks || []);
       setReleaseDate(deezerRes.releaseDate || null);
-      setGenres(deezerRes.genres || []);
+      const fetchedGenres = deezerRes.genres || [];
+      setGenres(fetchedGenres);
+
+      if (fetchedGenres.length > 0) {
+        await supabase.from("catalog_items").update({ genre: fetchedGenres[0] }).eq("id", item.id);
+      }
       setLoading(false);
     };
 

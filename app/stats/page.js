@@ -10,10 +10,12 @@ export default function StatsPage() {
   const router = useRouter();
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [albumRatings, setAlbumRatings] = useState([]);
+  const [albumRatings, setAlbumRatings] = useState([]); // { rating, item }
   const [tracksCount, setTracksCount] = useState(0);
-  const [bucketListOpen, setBucketListOpen] = useState(null);
+  const [bucketListOpen, setBucketListOpen] = useState(null); // { n, items } | null
   const [rankingOpen, setRankingOpen] = useState(false);
+  const [genreRankingOpen, setGenreRankingOpen] = useState(false);
+  const [genreAlbumsOpen, setGenreAlbumsOpen] = useState(null); // { genre, items } | null
   const [albumItem, setAlbumItem] = useState(null);
 
   const loadStats = async (uid) => {
@@ -79,6 +81,18 @@ export default function StatsPage() {
   });
   const maxBucketCount = Math.max(1, ...buckets.map((b) => b.items.length));
 
+  const genreCounts = {};
+  albumRatings.forEach((r) => {
+    const g = r.item.genre;
+    if (!g) return;
+    if (!genreCounts[g]) genreCounts[g] = [];
+    genreCounts[g].push(r);
+  });
+  const genreRanking = Object.entries(genreCounts)
+    .map(([genre, items]) => ({ genre, items }))
+    .sort((a, b) => b.items.length - a.items.length);
+  const topGenre = genreRanking[0];
+
   return (
     <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
       <p className="text-lg font-extrabold mb-5">Statistiques</p>
@@ -110,6 +124,19 @@ export default function StatsPage() {
                 <p className="text-xs text-mtgold">{best.rating}/10</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {topGenre && (
+          <div
+            onClick={() => setGenreRankingOpen(true)}
+            className="bg-white/[0.04] rounded-xl p-4 col-span-2 cursor-pointer"
+          >
+            <p className="text-xs text-zinc-400 mb-2">Genre prefere</p>
+            <p className="text-lg font-extrabold text-mtgold">{topGenre.genre}</p>
+            <p className="text-xs text-zinc-400">
+              {topGenre.items.length} album{topGenre.items.length > 1 ? "s" : ""}
+            </p>
           </div>
         )}
       </div>
@@ -217,6 +244,87 @@ export default function StatsPage() {
                   <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {genreRankingOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-30"
+          onClick={() => setGenreRankingOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-bold text-base">Tes genres preferes</p>
+              <button
+                onClick={() => setGenreRankingOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {genreRanking.map((g) => (
+                <div
+                  key={g.genre}
+                  onClick={() => {
+                    setGenreRankingOpen(false);
+                    setGenreAlbumsOpen(g);
+                  }}
+                  className="flex items-center justify-between cursor-pointer"
+                >
+                  <span className="text-sm font-medium">{g.genre}</span>
+                  <span className="text-mtgold text-sm font-bold">{g.items.length}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {genreAlbumsOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-30"
+          onClick={() => setGenreAlbumsOpen(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-bold text-base">{genreAlbumsOpen.genre}</p>
+              <button
+                onClick={() => setGenreAlbumsOpen(null)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {genreAlbumsOpen.items
+                .sort((a, b) => b.rating - a.rating)
+                .map((r) => (
+                  <div
+                    key={r.item.id}
+                    onClick={() => openAlbum(r.item)}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    {r.item.cover_url ? (
+                      <img src={r.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-zinc-800" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{r.item.title}</p>
+                      <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                    </div>
+                    <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
