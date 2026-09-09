@@ -50,64 +50,78 @@ function HomePageContent() {
       }
       setUserId(session.user.id);
 
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("pseudo")
-        .eq("id", session.user.id)
-        .single();
-      setProfile(profileData);
+      try {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("pseudo")
+          .eq("id", session.user.id)
+          .single();
+        setProfile(profileData);
 
-      const { data: ratingsData } = await supabase
-        .from("album_ratings")
-        .select("item_id, rating, updated_at, catalog_items(*)")
-        .eq("user_id", session.user.id)
-        .order("updated_at", { ascending: false });
+        const { data: ratingsData } = await supabase
+          .from("album_ratings")
+          .select("item_id, rating, updated_at, catalog_items(*)")
+          .eq("user_id", session.user.id)
+          .order("updated_at", { ascending: false });
 
-      const map = {};
-      (ratingsData || []).forEach((r) => (map[r.item_id] = r.rating));
-      setMyRatings(map);
+        const map = {};
+        (ratingsData || []).forEach((r) => (map[r.item_id] = r.rating));
+        setMyRatings(map);
 
-      const withItems = (ratingsData || []).filter((r) => r.catalog_items);
-      setTotalCounts({
-        albums: withItems.filter((r) => r.catalog_items.type === "album").length,
-        singles: withItems.filter((r) => r.catalog_items.type === "single").length,
-      });
-      setRecentItems(
-        withItems.slice(0, 8).map((r) => ({
-          id: r.catalog_items.id,
-          type: r.catalog_items.type,
-          title: r.catalog_items.title,
-          artist: r.catalog_items.artist,
-          coverUrl: r.catalog_items.cover_url,
-          deezerId: r.catalog_items.deezer_id,
-          previewUrl: r.catalog_items.preview_url,
-        }))
-      );
-
-      const genreCounts = {};
-      withItems
-        .filter((r) => r.catalog_items.type === "album" && r.catalog_items.genre)
-        .forEach((r) => {
-          const g = r.catalog_items.genre;
-          genreCounts[g] = (genreCounts[g] || 0) + 1;
+        const withItems = (ratingsData || []).filter((r) => r.catalog_items);
+        setTotalCounts({
+          albums: withItems.filter((r) => r.catalog_items.type === "album").length,
+          singles: withItems.filter((r) => r.catalog_items.type === "single").length,
         });
-      const topGenre = Object.entries(genreCounts).sort((a, b) => b[1] - a[1])[0];
-
-      const trendingRes = await fetch("/api/deezer-chart").then((r) => r.json());
-      setTrending((trendingRes.albums || []).slice(0, 8));
-
-      if (topGenre) {
-        setSuggestedLabel(`Suggere pour toi (${topGenre[0]})`);
-        const suggRes = await fetch("/api/deezer-search?q=" + encodeURIComponent(topGenre[0])).then((r) =>
-          r.json()
+        setRecentItems(
+          withItems.slice(0, 8).map((r) => ({
+            id: r.catalog_items.id,
+            type: r.catalog_items.type,
+            title: r.catalog_items.title,
+            artist: r.catalog_items.artist,
+            coverUrl: r.catalog_items.cover_url,
+            deezerId: r.catalog_items.deezer_id,
+            previewUrl: r.catalog_items.preview_url,
+          }))
         );
-        setSuggested((suggRes.results || []).filter((r) => r.kind === "album").slice(0, 8));
-      } else {
-        setSuggestedLabel("Tendances du moment");
-        setSuggested((trendingRes.albums || []).slice(0, 8));
-      }
 
-      setLoading(false);
+        const genreCounts = {};
+        withItems
+          .filter((r) => r.catalog_items.type === "album" && r.catalog_items.genre)
+          .forEach((r) => {
+            const g = r.catalog_items.genre;
+            genreCounts[g] = (genreCounts[g] || 0) + 1;
+          });
+        const topGenre = Object.entries(genreCounts).sort((a, b) => b[1] - a[1])[0];
+
+        let trendingAlbums = [];
+        try {
+          const trendingRes = await fetch("/api/deezer-chart").then((r) => r.json());
+          trendingAlbums = trendingRes.albums || [];
+        } catch (err) {
+          trendingAlbums = [];
+        }
+        setTrending(trendingAlbums.slice(0, 8));
+
+        if (topGenre) {
+          setSuggestedLabel(`Suggere pour toi (${topGenre[0]})`);
+          try {
+            const suggRes = await fetch("/api/deezer-search?q=" + encodeURIComponent(topGenre[0])).then(
+              (r) => r.json()
+            );
+            setSuggested((suggRes.results || []).filter((r) => r.kind === "album").slice(0, 8));
+          } catch (err) {
+            setSuggested(trendingAlbums.slice(0, 8));
+          }
+        } else {
+          setSuggestedLabel("Tendances du moment");
+          setSuggested(trendingAlbums.slice(0, 8));
+        }
+      } catch (err) {
+        setSearchError("Certaines donnees n'ont pas pu etre chargees.");
+      } finally {
+        setLoading(false);
+      }
     });
   }, [router]);
 
