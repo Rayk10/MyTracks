@@ -14,6 +14,7 @@ export default function ListDetailPage() {
   const [loading, setLoading] = useState(true);
   const [list, setList] = useState(null);
   const [items, setItems] = useState([]);
+  const [typeFilter, setTypeFilter] = useState("all"); // "all" | "album" | "ep" | "mixtape" | "single"
 
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
@@ -173,8 +174,36 @@ export default function ListDetailPage() {
         <p className="text-zinc-400 text-sm">Liste vide pour l&apos;instant. Ajoute des titres avec le bouton ci-dessus.</p>
       )}
 
+      {items.length > 1 && (
+        <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
+          {[
+            { key: "all", label: "Tout" },
+            { key: "album", label: "Album" },
+            { key: "ep", label: "EP" },
+            { key: "mixtape", label: "Mixtape" },
+            { key: "single", label: "Single" },
+          ].map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setTypeFilter(f.key)}
+              className={`flex-shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold ${
+                typeFilter === f.key ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-400"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-col gap-3">
-        {items.map((it) => (
+        {items
+          .filter((it) => {
+            if (typeFilter === "all") return true;
+            if (typeFilter === "single") return it.type === "single";
+            return it.type === "album" && (it.release_type || "album") === typeFilter;
+          })
+          .map((it) => (
           <div key={it.id} className="flex items-center gap-3">
             {it.cover_url ? (
               <img src={it.cover_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
@@ -182,7 +211,14 @@ export default function ListDetailPage() {
               <div className="w-12 h-12 rounded-lg bg-zinc-800 flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{it.title}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-medium truncate">{it.title}</p>
+                {it.type === "album" && (
+                  <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                    {it.release_type === "ep" ? "EP" : it.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-zinc-400 truncate">{it.artist}</p>
             </div>
             <button

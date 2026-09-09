@@ -1,3 +1,5 @@
+import { createClient } from "@/lib/supabaseClient";
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const name = searchParams.get("name");
@@ -36,10 +38,30 @@ export async function GET(request) {
         id: `deezer-album-${a.id}`,
         deezerId: a.id,
         type: "album",
+        releaseType: a.record_type === "ep" ? "ep" : "album",
         title: a.title,
         artist: a.artist.name,
         coverUrl: a.cover_medium,
       }));
+
+    if (albums.length > 0) {
+      try {
+        const supabase = createClient();
+        const { data: overrides } = await supabase
+          .from("catalog_items")
+          .select("id, release_type")
+          .in("id", albums.map((a) => a.id));
+        const overrideMap = {};
+        (overrides || []).forEach((o) => {
+          if (o.release_type) overrideMap[o.id] = o.release_type;
+        });
+        albums.forEach((a) => {
+          if (overrideMap[a.id]) a.releaseType = overrideMap[a.id];
+        });
+      } catch (err) {
+        // si ca echoue, on garde simplement le type detecte par Deezer
+      }
+    }
 
     return Response.json({ albums });
   } catch (err) {

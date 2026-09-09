@@ -22,6 +22,7 @@ export default function SearchCategoryPage() {
   const params = useParams();
   const category = params.category;
   const config = CONFIG[category] || { title: "Resultats", type: "chart" };
+  const hasSingles = config.itemType === "single";
 
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,7 @@ export default function SearchCategoryPage() {
   const [myRatings, setMyRatings] = useState({});
   const [ratingItem, setRatingItem] = useState(null);
   const [albumItem, setAlbumItem] = useState(null);
+  const [typeFilter, setTypeFilter] = useState("all"); // "all" | "album" | "ep" | "mixtape"
 
   useEffect(() => {
     const supabase = createClient();
@@ -76,6 +78,7 @@ export default function SearchCategoryPage() {
           ranked.map((r) => ({
             id: r.item.id,
             type: r.item.type,
+            releaseType: r.item.release_type,
             title: r.item.title,
             artist: r.item.artist,
             coverUrl: r.item.cover_url,
@@ -151,6 +154,12 @@ export default function SearchCategoryPage() {
     setMyRatings((prev) => Object.assign({}, prev, { [itemId]: value }));
   };
 
+  const displayedItems = hasSingles
+    ? items
+    : typeFilter === "all"
+    ? items
+    : items.filter((it) => (it.releaseType || "album") === typeFilter);
+
   return (
     <div className="min-h-screen px-4 pt-6 pb-16 max-w-md mx-auto mt-page-enter">
       <div className="flex items-center gap-3 mb-6">
@@ -160,13 +169,34 @@ export default function SearchCategoryPage() {
         <p className="font-extrabold text-lg">{config.title}</p>
       </div>
 
+      {!hasSingles && items.length > 0 && (
+        <div className="flex gap-2 mb-5">
+          {[
+            { key: "all", label: "Tout" },
+            { key: "album", label: "Album" },
+            { key: "ep", label: "EP" },
+            { key: "mixtape", label: "Mixtape" },
+          ].map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setTypeFilter(f.key)}
+              className={`flex-1 rounded-full py-1.5 text-[11px] font-bold ${
+                typeFilter === f.key ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-400"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading && <p className="text-zinc-400 text-sm">Chargement...</p>}
-      {!loading && items.length === 0 && (
+      {!loading && displayedItems.length === 0 && (
         <p className="text-zinc-400 text-sm">Rien à afficher pour l&apos;instant.</p>
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        {items.map((item) => (
+        {displayedItems.map((item) => (
           <div key={item.id} className="cursor-pointer" onClick={() => openItem(item)}>
             <div className="relative">
               {item.coverUrl ? (
@@ -175,7 +205,13 @@ export default function SearchCategoryPage() {
                 <div className="w-full aspect-square rounded-xl bg-zinc-800" />
               )}
               <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
-                {item.kind === "track" || item.type === "single" ? "SINGLE" : "ALBUM"}
+                {item.kind === "track" || item.type === "single"
+                  ? "SINGLE"
+                  : item.releaseType === "ep"
+                  ? "EP"
+                  : item.releaseType === "mixtape"
+                  ? "MIXTAPE"
+                  : "ALBUM"}
               </span>
               {item.communityAvg !== undefined ? (
                 <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">
