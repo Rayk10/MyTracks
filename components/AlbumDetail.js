@@ -20,6 +20,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const [releaseType, setReleaseType] = useState("album");
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     if (!item || !userId) return;
@@ -147,8 +148,6 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const trackValues = Object.values(trackRatings);
   const computed = trackValues.length > 0 ? trackValues.reduce((s, v) => s + v, 0) / trackValues.length * 2 : null;
   const displayedRating = computed !== null ? computed : directRating;
-
-  const [saveError, setSaveError] = useState("");
 
   const saveAlbumRating = async (rating, newComment) => {
     setSaving(true);
