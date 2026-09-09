@@ -29,7 +29,7 @@ export default function SplashPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden max-w-md mx-auto">
       <div
         className="absolute rounded-full pointer-events-none"
         style={{
@@ -54,7 +54,7 @@ export default function SplashPage() {
         onClick={() => router.push("/login")}
         className="w-full max-w-xs border border-zinc-700 text-white rounded-full py-3 font-semibold active:scale-95 transition-transform"
       >
-        DEJA UN COMPTE ?
+        DÉJÀ UN COMPTE ?
       </button>
     </div>
   );

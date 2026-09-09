@@ -18,6 +18,7 @@ export async function GET(request) {
       return true;
     });
 
+    // Vrais albums, tries du plus ancien au plus recent
     const albums = rawReleases
       .filter((a) => a.record_type === "album")
       .filter((a) => a.title && a.title.trim())
@@ -33,6 +34,7 @@ export async function GET(request) {
       }))
       .sort((x, y) => new Date(x.releaseDate || 0) - new Date(y.releaseDate || 0));
 
+    // Vraies sorties single/EP de l'artiste, triees du plus recent au plus ancien
     const singles = rawReleases
       .filter((a) => a.record_type === "single" || a.record_type === "ep")
       .filter((a) => a.title && a.title.trim())
@@ -50,6 +52,6 @@ export async function GET(request) {
 
     return Response.json({ albums, singles });
   } catch (err) {
-    return Response.json({ error: "Erreur lors de la recuperation des donnees artiste" }, { status: 500 });
+    return Response.json({ error: "Erreur lors de la récupération des données artiste" }, { status: 500 });
   }
 }

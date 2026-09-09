@@ -14,6 +14,7 @@ export default function StatsPage() {
   const [albumRatings, setAlbumRatings] = useState([]); // { rating, updatedAt, item }
   const [singleRatings, setSingleRatings] = useState([]);
   const [bucketListOpen, setBucketListOpen] = useState(null);
+  const [singleBucketListOpen, setSingleBucketListOpen] = useState(null);
   const [rankingOpen, setRankingOpen] = useState(false);
   const [genreRankingOpen, setGenreRankingOpen] = useState(false);
   const [genreAlbumsOpen, setGenreAlbumsOpen] = useState(null);
@@ -99,6 +100,12 @@ export default function StatsPage() {
   });
   const maxBucketCount = Math.max(1, ...buckets.map((b) => b.items.length));
 
+  const singleBuckets = [5, 4, 3, 2, 1].map((n) => {
+    const items = singleRatings.filter((r) => Math.floor(r.rating) === n);
+    return { n, items };
+  });
+  const maxSingleBucketCount = Math.max(1, ...singleBuckets.map((b) => b.items.length));
+
   const genreCounts = {};
   albumRatings.forEach((r) => {
     const g = r.item.genre;
@@ -111,7 +118,7 @@ export default function StatsPage() {
     .sort((a, b) => b.items.length - a.items.length);
   const topGenre = genreRanking[0];
 
-  // Artistes ecoutes : regroupement albums + singles par nom d'artiste
+  // Artistes écoutés : regroupement albums + singles par nom d'artiste
   const artistMap = {};
   [...albumRatings, ...singleRatings].forEach((r) => {
     const name = r.item.artist;
@@ -154,21 +161,21 @@ export default function StatsPage() {
           onClick={() => albumRatings.length > 0 && openStatsList("albums")}
           className="bg-white/[0.04] rounded-xl p-4 cursor-pointer"
         >
-          <p className="text-xs text-zinc-400 mb-1">Albums notes</p>
+          <p className="text-xs text-zinc-400 mb-1">Albums notés</p>
           <p className="text-2xl font-extrabold text-mtgold">{albumRatings.length}</p>
         </div>
         <div
           onClick={() => singleRatings.length > 0 && openStatsList("singles")}
           className="bg-white/[0.04] rounded-xl p-4 cursor-pointer"
         >
-          <p className="text-xs text-zinc-400 mb-1">Titres notes</p>
+          <p className="text-xs text-zinc-400 mb-1">Titres notés</p>
           <p className="text-2xl font-extrabold text-mtgold">{singleRatings.length}</p>
         </div>
         <div
           onClick={() => artistsList.length > 0 && openStatsList("artists")}
           className="bg-white/[0.04] rounded-xl p-4 col-span-2 cursor-pointer"
         >
-          <p className="text-xs text-zinc-400 mb-1">Artistes ecoutes</p>
+          <p className="text-xs text-zinc-400 mb-1">Artistes écoutés</p>
           <p className="text-2xl font-extrabold text-mtgold">{artistsList.length}</p>
         </div>
 
@@ -177,7 +184,7 @@ export default function StatsPage() {
             onClick={() => setRankingOpen(true)}
             className="bg-white/[0.04] rounded-xl p-4 col-span-2 cursor-pointer"
           >
-            <p className="text-xs text-zinc-400 mb-2">Album prefere</p>
+            <p className="text-xs text-zinc-400 mb-2">Album préféré</p>
             <div className="flex items-center gap-3">
               {best.item.cover_url ? (
                 <img src={best.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
@@ -197,7 +204,7 @@ export default function StatsPage() {
             onClick={() => setGenreRankingOpen(true)}
             className="bg-white/[0.04] rounded-xl p-4 col-span-2 cursor-pointer"
           >
-            <p className="text-xs text-zinc-400 mb-2">Genre prefere</p>
+            <p className="text-xs text-zinc-400 mb-2">Genre préféré</p>
             <p className="text-lg font-extrabold text-mtgold">{topGenre.genre}</p>
             <p className="text-xs text-zinc-400">
               {topGenre.items.length} album{topGenre.items.length > 1 ? "s" : ""}
@@ -206,7 +213,7 @@ export default function StatsPage() {
         )}
       </div>
 
-      <p className="text-sm font-bold text-zinc-300 mb-3">Repartition de tes notes d&apos;albums</p>
+      <p className="text-sm font-bold text-zinc-300 mb-3">Répartition de tes notes d&apos;albums</p>
       <div className="flex flex-col gap-1.5 mb-8">
         {buckets.map(({ n, items }) => (
           <div
@@ -229,7 +236,30 @@ export default function StatsPage() {
         ))}
       </div>
 
-      {/* Pop-up Albums / Titres / Artistes ecoutes, avec tri */}
+      <p className="text-sm font-bold text-zinc-300 mb-3">Répartition de tes notes de singles</p>
+      <div className="flex flex-col gap-1.5 mb-8">
+        {singleBuckets.map(({ n, items }) => (
+          <div
+            key={n}
+            onClick={() =>
+              items.length > 0 &&
+              setSingleBucketListOpen({ n, items: [...items].sort((a, b) => b.rating - a.rating) })
+            }
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <span className="text-xs text-zinc-500 w-4">{n}</span>
+            <div className="flex-1 bg-white/10 rounded h-2">
+              <div
+                className="bg-mtgold rounded h-2"
+                style={{ width: `${(items.length / maxSingleBucketCount) * 100}%` }}
+              />
+            </div>
+            <span className="text-xs text-zinc-500 w-4">{items.length}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Pop-up Albums / Titres / Artistes écoutés, avec tri */}
       {statsListOpen && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-30"
@@ -241,7 +271,7 @@ export default function StatsPage() {
           >
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-base">
-                {statsListOpen === "albums" ? "Tes albums notes" : statsListOpen === "singles" ? "Tes titres notes" : "Tes artistes ecoutes"}
+                {statsListOpen === "albums" ? "Tes albums notés" : statsListOpen === "singles" ? "Tes titres notés" : "Tes artistes écoutés"}
               </p>
               <button
                 onClick={() => setStatsListOpen(null)}
@@ -258,14 +288,14 @@ export default function StatsPage() {
             >
               {statsListOpen === "artists" ? (
                 <>
-                  <option value="most">Plus ecoute d&apos;abord</option>
-                  <option value="least">Moins ecoute d&apos;abord</option>
-                  <option value="recent">Plus recemment ajoute</option>
+                  <option value="most">Plus écouté d&apos;abord</option>
+                  <option value="least">Moins écouté d&apos;abord</option>
+                  <option value="recent">Plus récemment ajouté</option>
                   <option value="oldest">Plus ancien</option>
                 </>
               ) : (
                 <>
-                  <option value="recent">Plus recemment ajoute</option>
+                  <option value="recent">Plus récemment ajouté</option>
                   <option value="oldest">Plus ancien</option>
                   <option value="best">Meilleure note d&apos;abord</option>
                   <option value="worst">Moins bonne note d&apos;abord</option>
@@ -351,7 +381,7 @@ export default function StatsPage() {
             className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
-              <p className="font-bold text-base">Tes albums preferes</p>
+              <p className="font-bold text-base">Tes albums préférés</p>
               <button
                 onClick={() => setRankingOpen(false)}
                 className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
@@ -426,6 +456,51 @@ export default function StatsPage() {
         </div>
       )}
 
+      {singleBucketListOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-30"
+          onClick={() => setSingleBucketListOpen(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-bold text-base">Notes de {singleBucketListOpen.n}</p>
+              <button
+                onClick={() => setSingleBucketListOpen(null)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {singleBucketListOpen.items.map((r) => (
+                <div
+                  key={r.item.id}
+                  onClick={() => {
+                    setSingleBucketListOpen(null);
+                    openSingle(r.item, r.rating);
+                  }}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  {r.item.cover_url ? (
+                    <img src={r.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-zinc-800" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{r.item.title}</p>
+                    <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                  </div>
+                  <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {genreRankingOpen && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-30"
@@ -436,7 +511,7 @@ export default function StatsPage() {
             className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
-              <p className="font-bold text-base">Tes genres preferes</p>
+              <p className="font-bold text-base">Tes genres préférés</p>
               <button
                 onClick={() => setGenreRankingOpen(false)}
                 className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"

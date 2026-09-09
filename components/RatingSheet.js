@@ -165,7 +165,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Ecris ce que tu as pense de ce single..."
+          placeholder="Écris ce que tu as pensé de ce single..."
           rows={3}
           className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl p-3 text-sm outline-none resize-none mb-6"
         />
@@ -177,7 +177,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
             justSaved ? "bg-green-500 text-black" : "bg-mtgold text-black"
           }`}
         >
-          {saving ? "..." : justSaved ? "✓ Enregistre" : "ENREGISTRER LA NOTE"}
+          {saving ? "..." : justSaved ? "✓ Enregistré" : "ENREGISTRER LA NOTE"}
         </button>
       </div>
     </div>

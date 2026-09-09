@@ -6,19 +6,19 @@ import { createClient } from "@/lib/supabaseClient";
 import BottomNav from "@/components/BottomNav";
 
 const MONTHS = [
-  "janvier", "fevrier", "mars", "avril", "mai", "juin",
-  "juillet", "aout", "septembre", "octobre", "novembre", "decembre",
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
 ];
 
 const TILES = [
   { key: "selection", color: "#8b5cf6" },
-  { key: "nouveautes", label: "Dernieres sorties", color: "#0d9488" },
+  { key: "nouveautes", label: "Dernières sorties", color: "#0d9488" },
   { key: "hiphop", label: "Hip-Hop", color: "#52525b", genre: "Hip Hop" },
   { key: "pop", label: "Pop", color: "#16a34a", genre: "Pop" },
   { key: "rock", label: "Rock", color: "#b91c1c", genre: "Rock" },
   { key: "electro", label: "Electro", color: "#2563eb", genre: "Electro" },
-  { key: "community-tracks", label: "Les titres preferes de la communaute", color: "#78716c" },
-  { key: "community-albums", label: "Les albums preferes de la communaute", color: "#1e3a8a" },
+  { key: "community-tracks", label: "Les titres préférés de la communauté", color: "#78716c" },
+  { key: "community-albums", label: "Les albums préférés de la communauté", color: "#1e3a8a" },
 ];
 
 export default function SearchHubPage() {
@@ -27,7 +27,7 @@ export default function SearchHubPage() {
   const [peeks, setPeeks] = useState({});
 
   const now = new Date();
-  const selectionLabel = `Ta selection de ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+  const selectionLabel = `Ta sélection de ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
 
   useEffect(() => {
     const supabase = createClient();

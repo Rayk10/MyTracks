@@ -104,7 +104,7 @@ function HomePageContent() {
         setTrending(trendingAlbums.slice(0, 8));
 
         if (topGenre) {
-          setSuggestedLabel(`Suggere pour toi (${topGenre[0]})`);
+          setSuggestedLabel(`Suggéré pour toi (${topGenre[0]})`);
           try {
             const suggRes = await fetch("/api/deezer-genre?name=" + encodeURIComponent(topGenre[0])).then(
               (r) => r.json()
@@ -118,7 +118,7 @@ function HomePageContent() {
           setSuggested(trendingAlbums.slice(0, 8));
         }
       } catch (err) {
-        setSearchError("Certaines donnees n'ont pas pu etre chargees.");
+        setSearchError("Certaines données n'ont pas pu être chargées.");
       } finally {
         setLoading(false);
       }
@@ -146,7 +146,7 @@ function HomePageContent() {
       setResults(data.results || []);
       setHasSearched(true);
     } catch (err) {
-      setSearchError(err.message || "La recherche a echoue.");
+      setSearchError(err.message || "La recherche a échoué.");
     } finally {
       setSearching(false);
     }
@@ -263,7 +263,7 @@ function HomePageContent() {
 
       <div className="bg-white/[0.04] border border-white/[0.06] rounded-2xl p-4 mb-6">
         <p className="text-base font-extrabold mb-0.5">Salut, {profile ? profile.pseudo : ""} 👋</p>
-        <p className="text-xs text-zinc-400 mb-4">Qu&apos;est-ce qu&apos;on ecoute aujourd&apos;hui ?</p>
+        <p className="text-xs text-zinc-400 mb-4">Qu&apos;est-ce qu&apos;on écoute aujourd&apos;hui ?</p>
 
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
@@ -297,7 +297,7 @@ function HomePageContent() {
         <>
           {recentItems.length > 0 && (
             <div className="mb-8">
-              <p className="text-lg font-extrabold mb-3 -tracking-wide">Recents</p>
+              <p className="text-lg font-extrabold mb-3 -tracking-wide">Récents</p>
               <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
                 {recentItems.map((item) => (
                   <AlbumCard key={item.id} item={item} />
@@ -349,11 +349,11 @@ function HomePageContent() {
           <p className="text-lg font-extrabold mb-3 -tracking-wide">Tes stats</p>
           <div className="grid grid-cols-2 gap-3 mb-8">
             <div className="bg-white/[0.04] rounded-xl p-4">
-              <p className="text-xs text-zinc-400 mb-1">Albums notes</p>
+              <p className="text-xs text-zinc-400 mb-1">Albums notés</p>
               <p className="text-2xl font-extrabold text-mtgold">{totalCounts.albums}</p>
             </div>
             <div className="bg-white/[0.04] rounded-xl p-4">
-              <p className="text-xs text-zinc-400 mb-1">Titres notes</p>
+              <p className="text-xs text-zinc-400 mb-1">Titres notés</p>
               <p className="text-2xl font-extrabold text-mtgold">{totalCounts.singles}</p>
             </div>
           </div>
@@ -455,7 +455,7 @@ function HomePageContent() {
       ) : null}
 
       {hasSearched && !searching && results.length === 0 && !searchError ? (
-        <p className="text-zinc-400 text-sm">Aucun resultat pour cette recherche.</p>
+        <p className="text-zinc-400 text-sm">Aucun résultat pour cette recherche.</p>
       ) : null}
 
       {selectedArtist ? (
@@ -497,7 +497,7 @@ function HomePageContent() {
             <p className="text-lg font-extrabold mb-3">Albums</p>
             {loadingArtist ? <p className="text-zinc-400 text-sm">Chargement des albums...</p> : null}
             {!loadingArtist && artistAlbums.length === 0 ? (
-              <p className="text-zinc-400 text-sm">Aucun album trouve pour cet artiste.</p>
+              <p className="text-zinc-400 text-sm">Aucun album trouvé pour cet artiste.</p>
             ) : null}
             <div className="grid grid-cols-2 gap-3">
               {artistAlbums.map((item) => (

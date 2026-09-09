@@ -7,14 +7,14 @@ import RatingSheet from "@/components/RatingSheet";
 import AlbumDetail from "@/components/AlbumDetail";
 
 const CONFIG = {
-  selection: { title: "Ta selection", type: "personal" },
-  nouveautes: { title: "Dernieres sorties", type: "chart" },
+  selection: { title: "Ta sélection", type: "personal" },
+  nouveautes: { title: "Dernières sorties", type: "chart" },
   hiphop: { title: "Hip-Hop", type: "genre", genre: "Hip Hop" },
   pop: { title: "Pop", type: "genre", genre: "Pop" },
   rock: { title: "Rock", type: "genre", genre: "Rock" },
   electro: { title: "Electro", type: "genre", genre: "Electro" },
-  "community-tracks": { title: "Titres preferes de la communaute", type: "community", itemType: "single" },
-  "community-albums": { title: "Albums preferes de la communaute", type: "community", itemType: "album" },
+  "community-tracks": { title: "Titres préférés de la communauté", type: "community", itemType: "single" },
+  "community-albums": { title: "Albums préférés de la communauté", type: "community", itemType: "album" },
 };
 
 export default function SearchCategoryPage() {
@@ -124,7 +124,7 @@ export default function SearchCategoryPage() {
         return;
       }
 
-      // chart (Dernieres sorties, approxime avec les tendances Deezer)
+      // chart (Dernières sorties, approxime avec les tendances Deezer)
       const res = await fetch("/api/deezer-chart");
       const data = await res.json();
       setItems(data.albums || []);
@@ -162,7 +162,7 @@ export default function SearchCategoryPage() {
 
       {loading && <p className="text-zinc-400 text-sm">Chargement...</p>}
       {!loading && items.length === 0 && (
-        <p className="text-zinc-400 text-sm">Rien a afficher pour l&apos;instant.</p>
+        <p className="text-zinc-400 text-sm">Rien à afficher pour l&apos;instant.</p>
       )}
 
       <div className="grid grid-cols-2 gap-3">

@@ -163,7 +163,7 @@ export default function ProfilePage() {
       setFriendResults(data || []);
       setFriendSearchDone(true);
     } catch (err) {
-      setFriendSearchError(err.message || "La recherche a echoue.");
+      setFriendSearchError(err.message || "La recherche a échoué.");
       setFriendResults([]);
     } finally {
       setFriendSearching(false);
@@ -206,11 +206,11 @@ export default function ProfilePage() {
       <div className="flex justify-center gap-8 mb-6">
         <div className="text-center">
           <p className="text-lg font-extrabold text-mtgold">{stats.albums}</p>
-          <p className="text-xs text-zinc-400">Albums notes</p>
+          <p className="text-xs text-zinc-400">Albums notés</p>
         </div>
         <div className="text-center">
           <p className="text-lg font-extrabold text-mtgold">{stats.tracks}</p>
-          <p className="text-xs text-zinc-400">Titres notes</p>
+          <p className="text-xs text-zinc-400">Titres notés</p>
         </div>
       </div>
 
@@ -261,7 +261,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Mes 4 albums preferes</p>
+      <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Mes 4 albums préférés</p>
       <div className="grid grid-cols-4 gap-2 mb-10">
         {[0, 1, 2, 3].map((slot) => {
           const item = featured[slot];
@@ -301,7 +301,7 @@ export default function ProfilePage() {
         onClick={handleLogout}
         className="w-full border border-zinc-700 text-white rounded-full py-3 font-semibold text-sm"
       >
-        Se deconnecter
+        Se déconnecter
       </button>
 
       {pickerSlot !== null && (
@@ -361,7 +361,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <>
-                <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Tes albums notes</p>
+                <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Tes albums notés</p>
                 {myAlbums.length === 0 && (
                   <p className="text-zinc-400 text-sm">
                     Tu n&apos;as encore rien note. Utilise la recherche ci-dessus pour trouver un album.
@@ -433,7 +433,7 @@ export default function ProfilePage() {
             )}
 
             {friendSearchDone && friendResults.length === 0 && (
-              <p className="text-zinc-400 text-sm">Aucun utilisateur trouve pour ce pseudo.</p>
+              <p className="text-zinc-400 text-sm">Aucun utilisateur trouvé pour ce pseudo.</p>
             )}
             {!friendSearchDone && (
               <p className="text-zinc-400 text-sm">Cherche un pseudo pour trouver quelqu&apos;un.</p>

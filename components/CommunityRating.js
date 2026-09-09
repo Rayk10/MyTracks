@@ -35,7 +35,7 @@ export default function CommunityRating({ itemId, maxScale }) {
   return (
     <p className="text-sm mb-4">
       <span className="text-mtgold font-extrabold text-base">{stats.avg.toFixed(1)}</span>
-      <span className="text-zinc-400"> note communaute MyTracks · {stats.count} note{stats.count > 1 ? "s" : ""}</span>
+      <span className="text-zinc-400"> note communauté MyTracks · {stats.count} note{stats.count > 1 ? "s" : ""}</span>
     </p>
   );
 }

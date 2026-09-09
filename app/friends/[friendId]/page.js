@@ -102,11 +102,11 @@ export default function FriendProfilePage() {
         <div className="flex gap-8">
           <div className="text-center">
             <p className="text-lg font-extrabold text-mtgold">{stats.albums}</p>
-            <p className="text-xs text-zinc-400">Albums notes</p>
+            <p className="text-xs text-zinc-400">Albums notés</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-extrabold text-mtgold">{stats.tracks}</p>
-            <p className="text-xs text-zinc-400">Titres notes</p>
+            <p className="text-xs text-zinc-400">Titres notés</p>
           </div>
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function FriendProfilePage() {
 
       {featured.length > 0 && (
         <>
-          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Albums preferes</p>
+          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Albums préférés</p>
           <div className="grid grid-cols-4 gap-2 mb-8">
             {featured.map((item) => (
               <div key={item.id} onClick={() => openItem(item)} className="cursor-pointer">
@@ -137,7 +137,7 @@ export default function FriendProfilePage() {
 
       {recent.length > 0 && (
         <>
-          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Ecoutes recentes</p>
+          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Écoutes récentes</p>
           <div className="flex flex-col gap-3">
             {recent.map((r) => (
               <div

@@ -157,14 +157,14 @@ export default function RatingsPage() {
         >
           <option value="best">Meilleure note d&apos;abord</option>
           <option value="worst">Moins bonne note d&apos;abord</option>
-          <option value="recent">Plus recent d&apos;abord</option>
+          <option value="recent">Plus récent d&apos;abord</option>
           <option value="oldest">Plus ancien d&apos;abord</option>
         </select>
       )}
 
       {subTab !== "lists" && sorted.length === 0 && (
         <p className="text-zinc-400 text-sm">
-          Tu n&apos;as encore rien note dans cette categorie. Va noter un {subTab === "albums" ? "album" : "titre"} depuis l&apos;accueil.
+          Tu n&apos;as encore rien noté dans cette catégorie. Va noter un {subTab === "albums" ? "album" : "titre"} depuis l&apos;accueil.
         </p>
       )}
 
@@ -200,7 +200,7 @@ export default function RatingsPage() {
               onClick={() => setCreatingList(true)}
               className="w-full flex items-center justify-center gap-2 bg-white/[0.04] border border-dashed border-zinc-600 rounded-xl py-3 mb-5 text-sm font-bold text-mtgold"
             >
-              + Creer une liste
+              + Créer une liste
             </button>
           ) : (
             <div className="flex gap-2 mb-5">
@@ -213,7 +213,7 @@ export default function RatingsPage() {
                 className="flex-1 bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-2 text-sm outline-none"
               />
               <button onClick={createList} className="bg-mtgold text-black rounded-lg px-4 text-sm font-bold">
-                Creer
+                Créer
               </button>
               <button
                 onClick={() => {
@@ -228,7 +228,7 @@ export default function RatingsPage() {
           )}
 
           {lists.length === 0 && (
-            <p className="text-zinc-400 text-sm">Tu n&apos;as encore aucune liste. Cree-en une pour commencer.</p>
+            <p className="text-zinc-400 text-sm">Tu n&apos;as encore aucune liste. Crée-en une pour commencer.</p>
           )}
 
           <div className="flex flex-col gap-3">

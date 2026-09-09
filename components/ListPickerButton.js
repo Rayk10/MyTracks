@@ -50,7 +50,7 @@ export default function ListPickerButton({ userId, itemPayload }) {
             className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[70vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
-              <p className="font-bold text-base">Ajouter a une liste</p>
+              <p className="font-bold text-base">Ajouter à une liste</p>
               <button
                 onClick={() => setOpen(false)}
                 className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
@@ -61,7 +61,7 @@ export default function ListPickerButton({ userId, itemPayload }) {
             {loading && <p className="text-zinc-400 text-sm">Chargement...</p>}
             {!loading && lists.length === 0 && (
               <p className="text-zinc-400 text-sm">
-                Tu n&apos;as encore aucune liste. Cree-en une depuis &quot;Mes notes&quot;.
+                Tu n&apos;as encore aucune liste. Créé-en une depuis &quot;Mes notes&quot;.
               </p>
             )}
             <div className="flex flex-col gap-3">

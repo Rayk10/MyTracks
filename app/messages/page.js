@@ -71,7 +71,7 @@ export default function MessagesInboxPage() {
 
       {conversations.length === 0 && (
         <p className="text-zinc-400 text-sm">
-          Aucune conversation pour l&apos;instant. Va sur le profil d&apos;un ami pour lui ecrire.
+          Aucune conversation pour l&apos;instant. Va sur le profil d&apos;un ami pour lui écrire.
         </p>
       )}
 

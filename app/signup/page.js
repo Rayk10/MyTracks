@@ -43,7 +43,7 @@ export default function SignupPage() {
       <div className="flex justify-center mb-6">
         <Logo size={64} />
       </div>
-      <h2 className="text-xl font-bold text-center mb-6">Cree ton compte</h2>
+      <h2 className="text-xl font-bold text-center mb-6">Crée ton compte</h2>
 
       <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-full px-4 py-3 mb-3">
         <span className="text-zinc-500">✉</span>
@@ -90,7 +90,7 @@ export default function SignupPage() {
         onClick={() => router.push("/login")}
         className="text-center text-sm text-zinc-400 cursor-pointer font-semibold"
       >
-        DEJA UN COMPTE ?
+        DÉJÀ UN COMPTE ?
       </p>
     </div>
   );

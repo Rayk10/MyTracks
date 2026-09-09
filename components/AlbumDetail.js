@@ -233,7 +233,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Ecris ce que tu as pense de cet album..."
+          placeholder="Écris ce que tu as pensé de cet album..."
           rows={3}
           className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl p-3 text-sm outline-none resize-none mb-4"
         />
@@ -260,7 +260,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
           <div className="flex flex-col gap-3 mt-3">
             {loading && <p className="text-zinc-400 text-sm">Chargement des titres...</p>}
             {!loading && tracks.length === 0 && (
-              <p className="text-zinc-400 text-sm">Impossible de recuperer la liste des titres.</p>
+              <p className="text-zinc-400 text-sm">Impossible de récupérer la liste des titres.</p>
             )}
             {tracks.map((t) => (
               <div key={t.index} className="flex items-center justify-between gap-3">

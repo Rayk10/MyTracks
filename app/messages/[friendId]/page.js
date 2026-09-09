@@ -213,7 +213,7 @@ export default function ChatPage() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Ecris un message..."
+          placeholder="Écris un message..."
           className="flex-1 bg-white/[0.06] rounded-full px-4 py-2.5 text-sm outline-none"
         />
         <button
