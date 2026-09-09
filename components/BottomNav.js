@@ -5,9 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 const TABS = [
   { key: "home", path: "/home", icon: "⌂" },
   { key: "ratings", path: "/ratings", icon: "★" },
-  { key: "messages", path: "/messages", icon: "💬" },
   { key: "stats", path: "/stats", icon: "📊" },
   { key: "profile", path: "/profile", icon: "👤" },
+  { key: "messages", path: "/messages", icon: "💬" },
 ];
 
 export default function BottomNav() {
