@@ -7,7 +7,7 @@ import Stars from "@/components/Stars";
 export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const [directRating, setDirectRating] = useState(5);
   const [comment, setComment] = useState("");
-  const [trackRatings, setTrackRatings] = useState({}); // { index: rating }
+  const [trackRatings, setTrackRatings] = useState({});
   const [tracks, setTracks] = useState([]);
   const [releaseDate, setReleaseDate] = useState(null);
   const [genres, setGenres] = useState([]);
@@ -68,8 +68,12 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       const fetchedGenres = deezerRes.genres || [];
       setGenres(fetchedGenres);
 
-      if (fetchedGenres.length > 0) {
-        await supabase.from("catalog_items").update({ genre: fetchedGenres[0] }).eq("id", item.id);
+      const updatePayload = {};
+      if (fetchedGenres.length > 0) updatePayload.genre = fetchedGenres[0];
+      if (deezerRes.releaseDate) updatePayload.year = parseInt(deezerRes.releaseDate.slice(0, 4), 10);
+
+      if (Object.keys(updatePayload).length > 0) {
+        await supabase.from("catalog_items").update(updatePayload).eq("id", item.id);
       }
       setLoading(false);
     };
