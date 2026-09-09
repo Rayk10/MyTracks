@@ -242,7 +242,7 @@ function HomePageContent() {
           <div className="w-32 h-32 rounded-xl bg-zinc-800" />
         )}
         <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
-          {item.type === "album" ? "ALBUM" : "SINGLE"}
+          {item.type === "album" ? (item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM") : "SINGLE"}
         </span>
         {myRatings[item.id] !== undefined && (
           <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">
@@ -335,7 +335,7 @@ function HomePageContent() {
                         <div className="w-full aspect-square rounded-xl bg-zinc-800" />
                       )}
                       <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
-                        ALBUM
+                        {item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM"}
                       </span>
                       {myRatings[item.id] !== undefined ? (
                         <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">
@@ -354,7 +354,7 @@ function HomePageContent() {
           <p className="text-lg font-extrabold mb-3 -tracking-wide">Tes stats</p>
           <div className="grid grid-cols-2 gap-3 mb-8">
             <div className="bg-white/[0.04] rounded-xl p-4">
-              <p className="text-xs text-zinc-400 mb-1">Albums notés</p>
+              <p className="text-xs text-zinc-400 mb-1">Projets notés</p>
               <p className="text-2xl font-extrabold text-mtgold">{totalCounts.albums}</p>
             </div>
             <div className="bg-white/[0.04] rounded-xl p-4">
@@ -383,7 +383,7 @@ function HomePageContent() {
               (activeFilter === "album" ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300")
             }
           >
-            Albums
+            Projets
           </button>
           <button
             onClick={() => setActiveFilter(activeFilter === "track" ? null : "track")}
@@ -435,7 +435,7 @@ function HomePageContent() {
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium truncate">{item.title}</p>
                     <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
-                      {item.kind === "album" ? "ALBUM" : "SINGLE"}
+                      {item.kind === "album" ? (item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM") : "SINGLE"}
                     </span>
                   </div>
                   <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
@@ -499,10 +499,10 @@ function HomePageContent() {
           </div>
 
           <div className="px-4 pt-5 pb-28">
-            <p className="text-lg font-extrabold mb-3">Albums</p>
-            {loadingArtist ? <p className="text-zinc-400 text-sm">Chargement des albums...</p> : null}
+            <p className="text-lg font-extrabold mb-3">Projets</p>
+            {loadingArtist ? <p className="text-zinc-400 text-sm">Chargement des projets...</p> : null}
             {!loadingArtist && artistAlbums.length === 0 ? (
-              <p className="text-zinc-400 text-sm">Aucun album trouvé pour cet artiste.</p>
+              <p className="text-zinc-400 text-sm">Aucun projet trouvé pour cet artiste.</p>
             ) : null}
             <div className="grid grid-cols-2 gap-3">
               {artistAlbums.map((item) => (
@@ -514,7 +514,7 @@ function HomePageContent() {
                       <div className="w-full aspect-square rounded-xl bg-zinc-800" />
                     )}
                     <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
-                      ALBUM
+                      {item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM"}
                     </span>
                     {myRatings[item.id] !== undefined ? (
                       <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">

@@ -18,6 +18,7 @@ export default function RatingsPage() {
   const [unratedCreations, setUnratedCreations] = useState([]);
   const [lists, setLists] = useState([]);
   const [subTab, setSubTab] = useState("albums");
+  const [projectFilter, setProjectFilter] = useState("all"); // "all" | "album" | "ep" | "mixtape"
   const [sortMode, setSortMode] = useState("best");
   const [ratingItem, setRatingItem] = useState(null);
   const [albumItem, setAlbumItem] = useState(null);
@@ -42,6 +43,7 @@ export default function RatingsPage() {
       .map((r) => ({
         id: r.catalog_items.id,
         type: r.catalog_items.type,
+        releaseType: r.catalog_items.release_type,
         title: r.catalog_items.title,
         artist: r.catalog_items.artist,
         coverUrl: r.catalog_items.cover_url,
@@ -68,6 +70,7 @@ export default function RatingsPage() {
       .map((it) => ({
         id: it.id,
         type: it.type,
+        releaseType: it.release_type,
         title: it.title,
         artist: it.artist,
         coverUrl: it.cover_url,
@@ -161,7 +164,15 @@ export default function RatingsPage() {
     );
   }
 
-  const filtered = ratedItems.filter((it) => (subTab === "albums" ? it.type === "album" : it.type === "single"));
+  const filtered = ratedItems.filter((it) => {
+    if (subTab === "albums") {
+      if (it.type !== "album") return false;
+      if (projectFilter === "all") return true;
+      const t = it.releaseType || "album";
+      return t === projectFilter;
+    }
+    return it.type === "single";
+  });
 
   const sorted = [...filtered].sort((a, b) => {
     if (sortMode === "best") return b.rating - a.rating;
@@ -206,7 +217,7 @@ export default function RatingsPage() {
                   <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
                 </div>
                 <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1.5 py-0.5 flex-shrink-0">
-                  {item.type === "album" ? "ALBUM" : "SINGLE"}
+                  {item.type === "album" ? (item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM") : "SINGLE"}
                 </span>
               </div>
             ))}
@@ -216,7 +227,7 @@ export default function RatingsPage() {
 
       <div className="flex gap-2 mb-4">
         {[
-          { key: "albums", label: "Albums" },
+          { key: "albums", label: "Projets" },
           { key: "singles", label: "Singles" },
           { key: "lists", label: "Listes" },
         ].map((s) => (
@@ -231,6 +242,27 @@ export default function RatingsPage() {
           </button>
         ))}
       </div>
+
+      {subTab === "albums" && (
+        <div className="flex gap-2 mb-4">
+          {[
+            { key: "all", label: "Tout" },
+            { key: "album", label: "Album" },
+            { key: "ep", label: "EP" },
+            { key: "mixtape", label: "Mixtape" },
+          ].map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setProjectFilter(f.key)}
+              className={`flex-1 rounded-full py-1.5 text-[11px] font-bold ${
+                projectFilter === f.key ? "bg-white/20 text-white" : "bg-white/[0.04] text-zinc-500"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {subTab !== "lists" && (
         <select
@@ -247,7 +279,7 @@ export default function RatingsPage() {
 
       {subTab !== "lists" && sorted.length === 0 && (
         <p className="text-zinc-400 text-sm">
-          Tu n&apos;as encore rien noté dans cette catégorie. Va noter un {subTab === "albums" ? "album" : "titre"} depuis l&apos;accueil.
+          Tu n&apos;as encore rien noté dans cette catégorie. Va noter un {subTab === "albums" ? "projet" : "titre"} depuis l&apos;accueil.
         </p>
       )}
 
@@ -265,7 +297,14 @@ export default function RatingsPage() {
                 <div className="w-12 h-12 rounded-lg bg-zinc-800 flex-shrink-0" />
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.title}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-medium truncate">{item.title}</p>
+                  {subTab === "albums" && (
+                    <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                      {item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
               </div>
               <span className="text-mtgold text-sm font-bold flex-shrink-0">

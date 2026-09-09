@@ -102,7 +102,7 @@ export default function FriendProfilePage() {
         <div className="flex gap-8">
           <div className="text-center">
             <p className="text-lg font-extrabold text-mtgold">{stats.albums}</p>
-            <p className="text-xs text-zinc-400">Albums notés</p>
+            <p className="text-xs text-zinc-400">Projets notés</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-extrabold text-mtgold">{stats.tracks}</p>
@@ -120,7 +120,7 @@ export default function FriendProfilePage() {
 
       {featured.length > 0 && (
         <>
-          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Albums préférés</p>
+          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Projets préférés</p>
           <div className="grid grid-cols-4 gap-2 mb-8">
             {featured.map((item) => (
               <div key={item.id} onClick={() => openItem(item)} className="cursor-pointer">
@@ -151,7 +151,18 @@ export default function FriendProfilePage() {
                   <div className="w-11 h-11 rounded-lg bg-zinc-800 flex-shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{r.catalog_items.title}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-medium truncate">{r.catalog_items.title}</p>
+                    {r.catalog_items.type === "album" && (
+                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                        {r.catalog_items.release_type === "ep"
+                          ? "EP"
+                          : r.catalog_items.release_type === "mixtape"
+                          ? "MIXTAPE"
+                          : "ALBUM"}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-zinc-400 truncate">{r.catalog_items.artist}</p>
                 </div>
                 <span className="text-mtgold text-xs font-bold flex-shrink-0">

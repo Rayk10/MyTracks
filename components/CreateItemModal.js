@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabaseClient";
 
 export default function CreateItemModal({ userId, onClose, onCreated }) {
   const [type, setType] = useState("album");
+  const [releaseType, setReleaseType] = useState("album");
   const [title, setTitle] = useState("");
   const [artist, setArtist] = useState("");
   const [year, setYear] = useState("");
@@ -58,6 +59,7 @@ export default function CreateItemModal({ userId, onClose, onCreated }) {
       const { error: itemError } = await supabase.from("catalog_items").insert({
         id: itemId,
         type,
+        release_type: type === "album" ? releaseType : null,
         title: title.trim(),
         artist: artist.trim(),
         year: year ? parseInt(year, 10) : null,
@@ -98,7 +100,7 @@ export default function CreateItemModal({ userId, onClose, onCreated }) {
         className="bg-zinc-900 w-full max-w-md mx-auto rounded-t-2xl p-6 max-h-[88vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-5">
-          <p className="font-bold text-base">Ajouter un album / single</p>
+          <p className="font-bold text-base">Ajouter un projet / single</p>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
@@ -114,7 +116,7 @@ export default function CreateItemModal({ userId, onClose, onCreated }) {
               type === "album" ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300"
             }`}
           >
-            Album
+            Projet
           </button>
           <button
             onClick={() => setType("single")}
@@ -125,6 +127,26 @@ export default function CreateItemModal({ userId, onClose, onCreated }) {
             Single
           </button>
         </div>
+
+        {type === "album" && (
+          <div className="flex gap-2 mb-5">
+            {[
+              { key: "album", label: "Album" },
+              { key: "ep", label: "EP" },
+              { key: "mixtape", label: "Mixtape" },
+            ].map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => setReleaseType(opt.key)}
+                className={`flex-1 rounded-full py-1.5 text-xs font-bold ${
+                  releaseType === opt.key ? "bg-mtgold text-black" : "bg-white/[0.04] text-zinc-400"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="flex justify-center mb-5">
           <label className="cursor-pointer">

@@ -206,7 +206,7 @@ export default function ProfilePage() {
       <div className="flex justify-center gap-8 mb-6">
         <div className="text-center">
           <p className="text-lg font-extrabold text-mtgold">{stats.albums}</p>
-          <p className="text-xs text-zinc-400">Albums notés</p>
+          <p className="text-xs text-zinc-400">Projets notés</p>
         </div>
         <div className="text-center">
           <p className="text-lg font-extrabold text-mtgold">{stats.tracks}</p>
@@ -261,7 +261,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Mes 4 albums préférés</p>
+      <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Mes 4 projets préférés</p>
       <div className="grid grid-cols-4 gap-2 mb-10">
         {[0, 1, 2, 3].map((slot) => {
           const item = featured[slot];
@@ -314,7 +314,7 @@ export default function ProfilePage() {
             className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
-              <p className="font-bold text-sm">Choisir un album</p>
+              <p className="font-bold text-sm">Choisir un projet</p>
               <button
                 onClick={() => setPickerSlot(null)}
                 className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
@@ -361,7 +361,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <>
-                <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Tes albums notés</p>
+                <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Tes projets notés</p>
                 {myAlbums.length === 0 && (
                   <p className="text-zinc-400 text-sm">
                     Tu n&apos;as encore rien note. Utilise la recherche ci-dessus pour trouver un album.

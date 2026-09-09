@@ -14,7 +14,7 @@ const CONFIG = {
   rock: { title: "Rock", type: "genre", genre: "Rock" },
   electro: { title: "Electro", type: "genre", genre: "Electro" },
   "community-tracks": { title: "Titres préférés de la communauté", type: "community", itemType: "single" },
-  "community-albums": { title: "Albums préférés de la communauté", type: "community", itemType: "album" },
+  "community-albums": { title: "Projets préférés de la communauté", type: "community", itemType: "album" },
 };
 
 export default function SearchCategoryPage() {

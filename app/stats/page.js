@@ -176,7 +176,7 @@ export default function StatsPage() {
           onClick={() => albumRatings.length > 0 && openStatsList("albums")}
           className="bg-white/[0.04] rounded-xl p-4 cursor-pointer"
         >
-          <p className="text-xs text-zinc-400 mb-1">Albums notés</p>
+          <p className="text-xs text-zinc-400 mb-1">Projets notés</p>
           <p className="text-2xl font-extrabold text-mtgold">{albumRatings.length}</p>
         </div>
         <div
@@ -199,7 +199,7 @@ export default function StatsPage() {
             onClick={() => setRankingOpen(true)}
             className="bg-white/[0.04] rounded-xl p-4 col-span-2 cursor-pointer"
           >
-            <p className="text-xs text-zinc-400 mb-2">Album préféré</p>
+            <p className="text-xs text-zinc-400 mb-2">Projet préféré</p>
             <div className="flex items-center gap-3">
               {best.item.cover_url ? (
                 <img src={best.item.cover_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
@@ -228,7 +228,7 @@ export default function StatsPage() {
         )}
       </div>
 
-      <p className="text-sm font-bold text-zinc-300 mb-3">Répartition de tes notes d&apos;albums</p>
+      <p className="text-sm font-bold text-zinc-300 mb-3">Répartition de tes notes de projets</p>
       <div className="flex flex-col gap-1.5 mb-8">
         {buckets.map(({ n, items }) => (
           <div
@@ -288,7 +288,7 @@ export default function StatsPage() {
           >
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-base">
-                {statsListOpen === "albums" ? "Tes albums notés" : statsListOpen === "singles" ? "Tes titres notés" : "Tes artistes écoutés"}
+                {statsListOpen === "albums" ? "Tes projets notés" : statsListOpen === "singles" ? "Tes titres notés" : "Tes artistes écoutés"}
               </p>
               <button
                 onClick={() => setStatsListOpen(null)}
@@ -337,7 +337,12 @@ export default function StatsPage() {
                       <div className="w-10 h-10 rounded-lg bg-zinc-800" />
                     )}
                     <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">{r.item.title}</p>
+                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                        {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                      </span>
+                    </div>
                       <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                     </div>
                     <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
@@ -360,7 +365,12 @@ export default function StatsPage() {
                       <div className="w-10 h-10 rounded-lg bg-zinc-800" />
                     )}
                     <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">{r.item.title}</p>
+                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                        {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                      </span>
+                    </div>
                       <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                     </div>
                     <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
@@ -398,7 +408,7 @@ export default function StatsPage() {
             className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
-              <p className="font-bold text-base">Tes albums préférés</p>
+              <p className="font-bold text-base">Tes projets préférés</p>
               <button
                 onClick={() => setRankingOpen(false)}
                 className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
@@ -420,7 +430,12 @@ export default function StatsPage() {
                     <div className="w-10 h-10 rounded-lg bg-zinc-800" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{r.item.title}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium truncate">{r.item.title}</p>
+                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                        {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                      </span>
+                    </div>
                     <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                   </div>
                   <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
@@ -474,7 +489,12 @@ export default function StatsPage() {
                     <div className="w-10 h-10 rounded-lg bg-zinc-800" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{r.item.title}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium truncate">{r.item.title}</p>
+                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                        {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                      </span>
+                    </div>
                     <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                   </div>
                   <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
@@ -531,7 +551,12 @@ export default function StatsPage() {
                     <div className="w-10 h-10 rounded-lg bg-zinc-800" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{r.item.title}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium truncate">{r.item.title}</p>
+                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                        {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                      </span>
+                    </div>
                     <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                   </div>
                   <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
@@ -612,7 +637,12 @@ export default function StatsPage() {
                       <div className="w-10 h-10 rounded-lg bg-zinc-800" />
                     )}
                     <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">{r.item.title}</p>
+                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                        {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                      </span>
+                    </div>
                       <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                     </div>
                     <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
