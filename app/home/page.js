@@ -106,10 +106,10 @@ function HomePageContent() {
         if (topGenre) {
           setSuggestedLabel(`Suggere pour toi (${topGenre[0]})`);
           try {
-            const suggRes = await fetch("/api/deezer-search?q=" + encodeURIComponent(topGenre[0])).then(
+            const suggRes = await fetch("/api/deezer-genre?name=" + encodeURIComponent(topGenre[0])).then(
               (r) => r.json()
             );
-            setSuggested((suggRes.results || []).filter((r) => r.kind === "album").slice(0, 8));
+            setSuggested((suggRes.albums || []).slice(0, 8));
           } catch (err) {
             setSuggested(trendingAlbums.slice(0, 8));
           }

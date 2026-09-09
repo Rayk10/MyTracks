@@ -90,9 +90,9 @@ export default function SearchCategoryPage() {
       }
 
       if (config.type === "genre") {
-        const res = await fetch("/api/deezer-search?q=" + encodeURIComponent(config.genre));
+        const res = await fetch("/api/deezer-genre?name=" + encodeURIComponent(config.genre));
         const data = await res.json();
-        setItems((data.results || []).filter((r) => r.kind === "album").slice(0, 20));
+        setItems(data.albums || []);
         setLoading(false);
         return;
       }
@@ -112,9 +112,9 @@ export default function SearchCategoryPage() {
         const topGenre = Object.entries(genreCounts).sort((a, b) => b[1] - a[1])[0];
 
         if (topGenre) {
-          const res = await fetch("/api/deezer-search?q=" + encodeURIComponent(topGenre[0]));
+          const res = await fetch("/api/deezer-genre?name=" + encodeURIComponent(topGenre[0]));
           const data = await res.json();
-          setItems((data.results || []).filter((r) => r.kind === "album").slice(0, 20));
+          setItems(data.albums || []);
         } else {
           const res = await fetch("/api/deezer-chart");
           const data = await res.json();
