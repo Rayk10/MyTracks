@@ -6,16 +6,21 @@ import { createClient } from "@/lib/supabaseClient";
 import BottomNav from "@/components/BottomNav";
 import RatingSheet from "@/components/RatingSheet";
 import AlbumDetail from "@/components/AlbumDetail";
+import ListCoverMosaic from "@/components/ListCoverMosaic";
 
 export default function RatingsPage() {
   const router = useRouter();
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [ratedItems, setRatedItems] = useState([]);
+  const [lists, setLists] = useState([]);
   const [subTab, setSubTab] = useState("albums");
   const [sortMode, setSortMode] = useState("best");
   const [ratingItem, setRatingItem] = useState(null);
   const [albumItem, setAlbumItem] = useState(null);
+
+  const [creatingList, setCreatingList] = useState(false);
+  const [newListName, setNewListName] = useState("");
 
   const loadRatings = async (uid) => {
     const supabase = createClient();
@@ -40,6 +45,22 @@ export default function RatingsPage() {
     setRatedItems(items);
   };
 
+  const loadLists = async (uid) => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("custom_lists")
+      .select("id, name, custom_list_items(catalog_items(*))")
+      .eq("user_id", uid)
+      .order("created_at", { ascending: false });
+
+    const formatted = (data || []).map((l) => ({
+      id: l.id,
+      name: l.name,
+      items: (l.custom_list_items || []).map((li) => li.catalog_items).filter(Boolean),
+    }));
+    setLists(formatted);
+  };
+
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -49,6 +70,7 @@ export default function RatingsPage() {
       }
       setUserId(session.user.id);
       await loadRatings(session.user.id);
+      await loadLists(session.user.id);
       setLoading(false);
     });
   }, [router]);
@@ -61,13 +83,28 @@ export default function RatingsPage() {
     }
   };
 
-  const handleRatingSaved = async (itemId, value) => {
+  const handleRatingSaved = async () => {
     setRatingItem(null);
     if (userId) await loadRatings(userId);
   };
 
-  const handleAlbumSaved = async (itemId, value) => {
+  const handleAlbumSaved = async () => {
     if (userId) await loadRatings(userId);
+  };
+
+  const createList = async () => {
+    if (!newListName.trim() || !userId) return;
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("custom_lists")
+      .insert({ user_id: userId, name: newListName.trim() })
+      .select()
+      .single();
+    if (data) {
+      setLists((prev) => [{ id: data.id, name: data.name, items: [] }, ...prev]);
+    }
+    setNewListName("");
+    setCreatingList(false);
   };
 
   if (loading) {
@@ -95,7 +132,11 @@ export default function RatingsPage() {
       <p className="text-lg font-extrabold mb-4">Mes notes</p>
 
       <div className="flex gap-2 mb-4">
-        {[{ key: "albums", label: "Albums" }, { key: "singles", label: "Singles" }].map((s) => (
+        {[
+          { key: "albums", label: "Albums" },
+          { key: "singles", label: "Singles" },
+          { key: "lists", label: "Listes" },
+        ].map((s) => (
           <button
             key={s.key}
             onClick={() => setSubTab(s.key)}
@@ -108,45 +149,107 @@ export default function RatingsPage() {
         ))}
       </div>
 
-      <select
-        value={sortMode}
-        onChange={(e) => setSortMode(e.target.value)}
-        className="w-full bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-2 text-xs mb-5 outline-none"
-      >
-        <option value="best">Meilleure note d&apos;abord</option>
-        <option value="worst">Moins bonne note d&apos;abord</option>
-        <option value="recent">Plus recent d&apos;abord</option>
-        <option value="oldest">Plus ancien d&apos;abord</option>
-      </select>
+      {subTab !== "lists" && (
+        <select
+          value={sortMode}
+          onChange={(e) => setSortMode(e.target.value)}
+          className="w-full bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-2 text-xs mb-5 outline-none"
+        >
+          <option value="best">Meilleure note d&apos;abord</option>
+          <option value="worst">Moins bonne note d&apos;abord</option>
+          <option value="recent">Plus recent d&apos;abord</option>
+          <option value="oldest">Plus ancien d&apos;abord</option>
+        </select>
+      )}
 
-      {sorted.length === 0 && (
+      {subTab !== "lists" && sorted.length === 0 && (
         <p className="text-zinc-400 text-sm">
           Tu n&apos;as encore rien note dans cette categorie. Va noter un {subTab === "albums" ? "album" : "titre"} depuis l&apos;accueil.
         </p>
       )}
 
-      <div className="flex flex-col gap-3">
-        {sorted.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => openItem(item)}
-            className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2 cursor-pointer"
-          >
-            {item.coverUrl ? (
-              <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-            ) : (
-              <div className="w-12 h-12 rounded-lg bg-zinc-800 flex-shrink-0" />
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{item.title}</p>
-              <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
+      {subTab !== "lists" && (
+        <div className="flex flex-col gap-3">
+          {sorted.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => openItem(item)}
+              className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2 cursor-pointer"
+            >
+              {item.coverUrl ? (
+                <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-12 h-12 rounded-lg bg-zinc-800 flex-shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{item.title}</p>
+                <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
+              </div>
+              <span className="text-mtgold text-sm font-bold flex-shrink-0">
+                {item.rating}/{maxScale}
+              </span>
             </div>
-            <span className="text-mtgold text-sm font-bold flex-shrink-0">
-              {item.rating}/{maxScale}
-            </span>
+          ))}
+        </div>
+      )}
+
+      {subTab === "lists" && (
+        <>
+          {!creatingList ? (
+            <button
+              onClick={() => setCreatingList(true)}
+              className="w-full flex items-center justify-center gap-2 bg-white/[0.04] border border-dashed border-zinc-600 rounded-xl py-3 mb-5 text-sm font-bold text-mtgold"
+            >
+              + Creer une liste
+            </button>
+          ) : (
+            <div className="flex gap-2 mb-5">
+              <input
+                autoFocus
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                placeholder="Nom de la liste..."
+                onKeyDown={(e) => e.key === "Enter" && createList()}
+                className="flex-1 bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-2 text-sm outline-none"
+              />
+              <button onClick={createList} className="bg-mtgold text-black rounded-lg px-4 text-sm font-bold">
+                Creer
+              </button>
+              <button
+                onClick={() => {
+                  setCreatingList(false);
+                  setNewListName("");
+                }}
+                className="border border-zinc-700 rounded-lg px-3 text-sm text-zinc-400"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          {lists.length === 0 && (
+            <p className="text-zinc-400 text-sm">Tu n&apos;as encore aucune liste. Cree-en une pour commencer.</p>
+          )}
+
+          <div className="flex flex-col gap-3">
+            {lists.map((list) => (
+              <div
+                key={list.id}
+                onClick={() => router.push(`/lists/${list.id}`)}
+                className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2 cursor-pointer"
+              >
+                <ListCoverMosaic items={list.items} size={48} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{list.name}</p>
+                  <p className="text-xs text-zinc-400">
+                    {list.items.length} titre{list.items.length > 1 ? "s" : ""}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
       <RatingSheet
         item={ratingItem}
