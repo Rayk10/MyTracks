@@ -105,10 +105,11 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       if (deezerRes.releaseDate) updatePayload.year = parseInt(deezerRes.releaseDate.slice(0, 4), 10);
 
       const isFromDeezer = !!(item.deezerId || item.deezer_id);
+      // Deezer est prioritaire pour distinguer Album/EP (donnee officielle du label)
       let finalType = currentReleaseType || deezerRes.releaseType || "album";
 
-      // On ne consulte MusicBrainz que la toute premiere fois qu'on rencontre cet item
-      // (jamais pour les creations perso, qui n'existent dans aucune base externe)
+      // MusicBrainz ne sert qu'a detecter specifiquement "Mixtape" (que Deezer ne connait pas),
+      // sans jamais contredire ce que Deezer a determine pour Album/EP
       if (isFromDeezer && !currentReleaseType) {
         try {
           const mbRes = await fetch(
@@ -116,13 +117,11 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
               item.title
             )}`
           ).then((r) => r.json());
-          if (mbRes.releaseType) {
-            finalType = mbRes.releaseType;
-          } else if (deezerRes.releaseType) {
-            finalType = deezerRes.releaseType;
+          if (mbRes.releaseType === "mixtape") {
+            finalType = "mixtape";
           }
         } catch (err) {
-          if (deezerRes.releaseType) finalType = deezerRes.releaseType;
+          // Deezer reste la reference, aucun changement necessaire
         }
       }
 
