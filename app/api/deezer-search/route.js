@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabaseClient";
-import { getReleaseType } from "@/lib/musicbrainz";
 
 function relevanceScore(query, text) {
   if (!text) return 0;
@@ -94,11 +93,9 @@ export async function GET(request) {
       score: relevanceScore(query, ar.name),
     }));
 
-    let supabaseForSave = null;
     if (albums.length > 0) {
       try {
         const supabase = createClient();
-        supabaseForSave = supabase;
         const { data: overrides } = await supabase
           .from("catalog_items")
           .select("id, release_type")
@@ -110,33 +107,6 @@ export async function GET(request) {
         albums.forEach((a) => {
           if (overrideMap[a.id]) a.releaseType = overrideMap[a.id];
         });
-
-        // Pour les albums pas encore classifies chez nous, on consulte MusicBrainz
-        // (limite aux 6 premiers pour rester rapide et respecter leurs limites d'usage)
-        const unclassified = albums.filter((a) => !overrideMap[a.id]).slice(0, 6);
-        if (unclassified.length > 0) {
-          const mbResults = await Promise.all(
-            unclassified.map((a) => getReleaseType(a.artist, a.title))
-          );
-          const toSave = [];
-          unclassified.forEach((a, i) => {
-            if (mbResults[i]) {
-              a.releaseType = mbResults[i];
-              toSave.push({
-                id: a.id,
-                type: "album",
-                title: a.title,
-                artist: a.artist,
-                cover_url: a.coverUrl,
-                deezer_id: String(a.deezerId),
-                release_type: mbResults[i],
-              });
-            }
-          });
-          if (toSave.length > 0) {
-            await supabase.from("catalog_items").upsert(toSave);
-          }
-        }
       } catch (err) {
         // si ca echoue, on garde simplement le type detecte par Deezer
       }
