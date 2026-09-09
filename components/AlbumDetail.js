@@ -19,6 +19,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [releaseType, setReleaseType] = useState("album");
 
   useEffect(() => {
     if (!item || !userId) return;
@@ -39,6 +40,13 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       if (initialCatalogError) {
         setSaveError("Erreur (chargement) : " + initialCatalogError.message);
       }
+
+      const { data: currentRow } = await supabase
+        .from("catalog_items")
+        .select("release_type")
+        .eq("id", item.id)
+        .maybeSingle();
+      const currentReleaseType = currentRow && currentRow.release_type;
 
       const [ratingRes, trackRatingsRes, deezerRes] = await Promise.all([
         supabase
@@ -94,6 +102,33 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       const updatePayload = {};
       if (fetchedGenres.length > 0) updatePayload.genre = fetchedGenres[0];
       if (deezerRes.releaseDate) updatePayload.year = parseInt(deezerRes.releaseDate.slice(0, 4), 10);
+
+      const isFromDeezer = !!(item.deezerId || item.deezer_id);
+      let finalType = currentReleaseType || deezerRes.releaseType || "album";
+
+      // On ne consulte MusicBrainz que la toute premiere fois qu'on rencontre cet item
+      // (jamais pour les creations perso, qui n'existent dans aucune base externe)
+      if (isFromDeezer && !currentReleaseType) {
+        try {
+          const mbRes = await fetch(
+            `/api/musicbrainz-type?artist=${encodeURIComponent(item.artist)}&title=${encodeURIComponent(
+              item.title
+            )}`
+          ).then((r) => r.json());
+          if (mbRes.releaseType) {
+            finalType = mbRes.releaseType;
+          } else if (deezerRes.releaseType) {
+            finalType = deezerRes.releaseType;
+          }
+        } catch (err) {
+          if (deezerRes.releaseType) finalType = deezerRes.releaseType;
+        }
+      }
+
+      setReleaseType(finalType);
+      if (finalType !== currentReleaseType) {
+        updatePayload.release_type = finalType;
+      }
 
       if (Object.keys(updatePayload).length > 0) {
         await supabase.from("catalog_items").update(updatePayload).eq("id", item.id);
@@ -218,6 +253,12 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
         ) : (
           <div className="mb-4" />
         )}
+
+        <div className="flex justify-center mb-6">
+          <span className="text-xs font-bold rounded-full px-3 py-1.5 bg-white/[0.06] text-zinc-300">
+            {releaseType === "ep" ? "EP" : releaseType === "mixtape" ? "Mixtape" : "Album"}
+          </span>
+        </div>
 
         {genres.length > 0 && (
           <div className="flex flex-wrap justify-center gap-2 mb-6">
