@@ -18,6 +18,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const [tracksOpen, setTracksOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => {
     if (!item || !userId) return;
@@ -114,8 +115,12 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
     setDirectRating(value);
   };
 
-  const handleSaveClick = () => {
-    saveAlbumRating(directRating, comment);
+  const handleSaveClick = async () => {
+    await saveAlbumRating(directRating, comment);
+    setJustSaved(true);
+    setTimeout(() => {
+      onClose();
+    }, 600);
   };
 
   const handleTrackRate = async (index, value) => {
@@ -235,10 +240,12 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
 
         <button
           onClick={handleSaveClick}
-          disabled={saving}
-          className="w-full bg-mtgold text-black rounded-full py-3 font-bold mb-6 disabled:opacity-50 active:scale-95 transition-transform"
+          disabled={saving || justSaved}
+          className={`w-full rounded-full py-3 font-bold mb-6 disabled:opacity-90 active:scale-95 transition-all ${
+            justSaved ? "bg-green-500 text-black" : "bg-mtgold text-black"
+          }`}
         >
-          {saving ? "..." : "ENREGISTRER LA NOTE"}
+          {saving ? "..." : justSaved ? "✓ Enregistre" : "ENREGISTRER LA NOTE"}
         </button>
 
         <button

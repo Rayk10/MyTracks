@@ -11,6 +11,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
   const [ratingValue, setRatingValue] = useState(2.5);
   const [comment, setComment] = useState("");
   const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [loadingComment, setLoadingComment] = useState(true);
 
   useEffect(() => {
@@ -66,6 +67,10 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
     setSaving(false);
     if (!error) {
       onSaved(item.id, ratingValue);
+      setJustSaved(true);
+      setTimeout(() => {
+        onClose();
+      }, 600);
     }
   };
 
@@ -167,10 +172,12 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
 
         <button
           onClick={save}
-          disabled={saving}
-          className="w-full bg-mtgold text-black rounded-full py-3 font-bold disabled:opacity-50 active:scale-95 transition-transform"
+          disabled={saving || justSaved}
+          className={`w-full rounded-full py-3 font-bold disabled:opacity-90 active:scale-95 transition-all ${
+            justSaved ? "bg-green-500 text-black" : "bg-mtgold text-black"
+          }`}
         >
-          {saving ? "..." : "ENREGISTRER LA NOTE"}
+          {saving ? "..." : justSaved ? "✓ Enregistre" : "ENREGISTRER LA NOTE"}
         </button>
       </div>
     </div>

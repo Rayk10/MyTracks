@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import BottomNav from "@/components/BottomNav";
+import { ChatIcon } from "@/components/icons";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -15,6 +16,9 @@ export default function ProfilePage() {
   const [featured, setFeatured] = useState([null, null, null, null]);
   const [myAlbums, setMyAlbums] = useState([]);
   const [pickerSlot, setPickerSlot] = useState(null);
+  const [featuredQuery, setFeaturedQuery] = useState("");
+  const [featuredResults, setFeaturedResults] = useState([]);
+  const [featuredSearching, setFeaturedSearching] = useState(false);
 
   const [friends, setFriends] = useState([]);
   const [friendSearchOpen, setFriendSearchOpen] = useState(false);
@@ -84,18 +88,50 @@ export default function ProfilePage() {
     });
   }, [router]);
 
-  const chooseFeatured = async (item) => {
+  const chooseFeatured = async (rawItem) => {
     if (pickerSlot === null || !userId) return;
     const supabase = createClient();
+
+    // Normalise vers le format catalog_items, que la source soit "deja note" (myAlbums) ou une recherche Deezer
+    const catalogItem =
+      rawItem.cover_url !== undefined
+        ? rawItem
+        : {
+            id: rawItem.id,
+            type: "album",
+            title: rawItem.title,
+            artist: rawItem.artist,
+            cover_url: rawItem.coverUrl,
+            deezer_id: rawItem.deezerId ? String(rawItem.deezerId) : null,
+          };
+
+    await supabase.from("catalog_items").upsert(catalogItem);
     await supabase.from("featured_albums").upsert({
       user_id: userId,
       slot: pickerSlot,
-      item_id: item.id,
+      item_id: catalogItem.id,
     });
     const updated = [...featured];
-    updated[pickerSlot] = item;
+    updated[pickerSlot] = catalogItem;
     setFeatured(updated);
     setPickerSlot(null);
+    setFeaturedQuery("");
+    setFeaturedResults([]);
+  };
+
+  const searchFeatured = async (e) => {
+    e.preventDefault();
+    if (!featuredQuery.trim()) return;
+    setFeaturedSearching(true);
+    try {
+      const res = await fetch("/api/deezer-search?q=" + encodeURIComponent(featuredQuery));
+      const data = await res.json();
+      setFeaturedResults((data.results || []).filter((r) => r.kind === "album"));
+    } catch (err) {
+      setFeaturedResults([]);
+    } finally {
+      setFeaturedSearching(false);
+    }
   };
 
   const removeFeatured = async (slot) => {
@@ -167,7 +203,7 @@ export default function ProfilePage() {
         <p className="text-xl font-extrabold">{profile ? profile.pseudo : ""}</p>
       </div>
 
-      <div className="flex justify-center gap-8 mb-8">
+      <div className="flex justify-center gap-8 mb-6">
         <div className="text-center">
           <p className="text-lg font-extrabold text-mtgold">{stats.albums}</p>
           <p className="text-xs text-zinc-400">Albums notes</p>
@@ -178,15 +214,17 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      <button
+        onClick={() => router.push("/messages")}
+        className="w-full flex items-center justify-center gap-2 bg-mtgold text-black rounded-full py-3 font-bold mb-8 active:scale-95 transition-transform"
+      >
+        <ChatIcon color="#0a0a0a" size={18} />
+        Messages
+      </button>
+
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs uppercase tracking-wide text-zinc-500">Amis</p>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.push("/messages")}
-            className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-sm"
-          >
-            💬
-          </button>
           <button
             onClick={() => {
               setFriendSearchOpen(true);
@@ -230,7 +268,7 @@ export default function ProfilePage() {
           return (
             <div key={slot} className="relative">
               {item ? (
-                <div onClick={() => setPickerSlot(slot)} className="cursor-pointer">
+                <div onClick={() => { setPickerSlot(slot); setFeaturedQuery(""); setFeaturedResults([]); }} className="cursor-pointer">
                   {item.cover_url ? (
                     <img src={item.cover_url} alt="" className="w-full aspect-square rounded-lg object-cover" />
                   ) : (
@@ -248,7 +286,7 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div
-                  onClick={() => setPickerSlot(slot)}
+                  onClick={() => { setPickerSlot(slot); setFeaturedQuery(""); setFeaturedResults([]); }}
                   className="w-full aspect-square rounded-lg border border-dashed border-zinc-600 flex items-center justify-center cursor-pointer"
                 >
                   <span className="text-zinc-500 text-lg">+</span>
@@ -275,31 +313,81 @@ export default function ProfilePage() {
             onClick={(e) => e.stopPropagation()}
             className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
           >
-            <p className="font-bold text-sm mb-4">Choisir un album</p>
-            {myAlbums.length === 0 && (
-              <p className="text-zinc-400 text-sm">
-                Tu dois d&apos;abord noter des albums depuis l&apos;accueil pour pouvoir les mettre en avant ici.
-              </p>
-            )}
-            <div className="flex flex-col gap-3">
-              {myAlbums.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => chooseFeatured(item)}
-                  className="flex items-center gap-3 cursor-pointer"
-                >
-                  {item.cover_url ? (
-                    <img src={item.cover_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-zinc-800" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{item.title}</p>
-                    <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-bold text-sm">Choisir un album</p>
+              <button
+                onClick={() => setPickerSlot(null)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg"
+              >
+                ×
+              </button>
             </div>
+
+            <form onSubmit={searchFeatured} className="flex gap-2 mb-4">
+              <input
+                value={featuredQuery}
+                onChange={(e) => setFeaturedQuery(e.target.value)}
+                placeholder="Chercher n'importe quel album..."
+                className="flex-1 bg-white/[0.06] rounded-full px-4 py-2 text-sm outline-none"
+              />
+              <button
+                type="submit"
+                disabled={featuredSearching}
+                className="bg-mtgold text-black rounded-full px-4 py-2 text-sm font-bold disabled:opacity-50"
+              >
+                {featuredSearching ? "..." : "Go"}
+              </button>
+            </form>
+
+            {featuredResults.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {featuredResults.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => chooseFeatured(item)}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    {item.coverUrl ? (
+                      <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-zinc-800" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{item.title}</p>
+                      <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Tes albums notes</p>
+                {myAlbums.length === 0 && (
+                  <p className="text-zinc-400 text-sm">
+                    Tu n&apos;as encore rien note. Utilise la recherche ci-dessus pour trouver un album.
+                  </p>
+                )}
+                <div className="flex flex-col gap-3">
+                  {myAlbums.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => chooseFeatured(item)}
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      {item.cover_url ? (
+                        <img src={item.cover_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-zinc-800" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.title}</p>
+                        <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

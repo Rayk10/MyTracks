@@ -460,7 +460,16 @@ function HomePageContent() {
 
       {selectedArtist ? (
         <div className="fixed inset-0 bg-black z-30 overflow-y-auto max-w-md mx-auto">
-          <div className="relative w-full" style={{ aspectRatio: "1 / 0.9" }}>
+          <div className="sticky top-0 z-40 flex items-center px-4 py-3 bg-black/70 backdrop-blur">
+            <button
+              onClick={() => setSelectedArtist(null)}
+              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-xl"
+            >
+              ←
+            </button>
+          </div>
+
+          <div className="relative w-full -mt-14" style={{ aspectRatio: "1 / 0.9" }}>
             {selectedArtist.pictureUrl ? (
               <img
                 src={selectedArtist.pictureUrl.replace("medium", "big")}
@@ -474,12 +483,6 @@ function HomePageContent() {
               className="absolute inset-0"
               style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.85) 85%, #000 100%)" }}
             />
-            <button
-              onClick={() => setSelectedArtist(null)}
-              className="absolute top-6 left-4 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-xl"
-            >
-              ←
-            </button>
             <div className="absolute bottom-4 left-4 right-4">
               {selectedArtist.nbFan ? (
                 <p className="text-xs text-zinc-300 mb-1">
@@ -490,7 +493,7 @@ function HomePageContent() {
             </div>
           </div>
 
-          <div className="px-4 pt-5 pb-10">
+          <div className="px-4 pt-5 pb-28">
             <p className="text-lg font-extrabold mb-3">Albums</p>
             {loadingArtist ? <p className="text-zinc-400 text-sm">Chargement des albums...</p> : null}
             {!loadingArtist && artistAlbums.length === 0 ? (
@@ -563,6 +566,8 @@ function HomePageContent() {
               </>
             ) : null}
           </div>
+
+          <BottomNav />
         </div>
       ) : null}
 
