@@ -3,11 +3,15 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabaseClient";
 import Stars from "@/components/Stars";
+import CommunityRating from "@/components/CommunityRating";
+import ShareButton from "@/components/ShareButton";
+import ListPickerButton from "@/components/ListPickerButton";
+import StreamingLinks from "@/components/StreamingLinks";
 
 export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const [directRating, setDirectRating] = useState(5);
   const [comment, setComment] = useState("");
-  const [trackRatings, setTrackRatings] = useState({});
+  const [trackRatings, setTrackRatings] = useState({}); // { index: rating }
   const [tracks, setTracks] = useState([]);
   const [releaseDate, setReleaseDate] = useState(null);
   const [genres, setGenres] = useState([]);
@@ -171,6 +175,25 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
             ))}
           </div>
         )}
+
+        <CommunityRating itemId={item.id} maxScale={10} />
+
+        <div className="flex gap-2 mb-4">
+          <ShareButton title={item.title} artist={item.artist} />
+          <ListPickerButton
+            userId={userId}
+            itemPayload={{
+              id: item.id,
+              type: "album",
+              title: item.title,
+              artist: item.artist,
+              cover_url: item.coverUrl,
+              deezer_id: item.deezerId ? String(item.deezerId) : item.deezer_id || null,
+            }}
+          />
+        </div>
+
+        <StreamingLinks title={item.title} artist={item.artist} deezerId={item.deezerId} />
 
         <div className="bg-white/[0.04] rounded-2xl p-4 mb-5">
           <p className="text-xs text-zinc-400 mb-2">
