@@ -66,7 +66,7 @@ export default function MessagesInboxPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
+    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto mt-page-enter">
       <p className="text-lg font-extrabold mb-5">Messages</p>
 
       {conversations.length === 0 && (

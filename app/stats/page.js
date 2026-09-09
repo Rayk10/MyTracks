@@ -94,7 +94,7 @@ export default function StatsPage() {
   const topGenre = genreRanking[0];
 
   return (
-    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
+    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto mt-page-enter">
       <p className="text-lg font-extrabold mb-5">Statistiques</p>
 
       <div className="grid grid-cols-2 gap-3 mb-6">

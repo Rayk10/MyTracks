@@ -87,7 +87,7 @@ export default function FriendProfilePage() {
   }
 
   return (
-    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
+    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto mt-page-enter">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.back()} className="text-xl">
           ←

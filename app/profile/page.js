@@ -159,7 +159,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen px-4 pt-8 pb-28 max-w-md mx-auto">
+    <div className="min-h-screen px-4 pt-8 pb-28 max-w-md mx-auto mt-page-enter">
       <div className="flex flex-col items-center mb-6">
         <div className="w-24 h-24 rounded-full bg-mtgold text-black font-extrabold text-4xl flex items-center justify-center mb-3">
           {profile && profile.pseudo ? profile.pseudo.slice(0, 1).toUpperCase() : ""}

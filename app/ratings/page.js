@@ -128,7 +128,7 @@ export default function RatingsPage() {
   const maxScale = subTab === "albums" ? 10 : 5;
 
   return (
-    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
+    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto mt-page-enter">
       <p className="text-lg font-extrabold mb-4">Mes notes</p>
 
       <div className="flex gap-2 mb-4">

@@ -145,7 +145,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col max-w-md mx-auto">
+    <div className="min-h-screen flex flex-col max-w-md mx-auto mt-page-enter">
       <div className="flex items-center gap-3 px-4 pt-6 pb-4">
         <button onClick={() => router.push("/messages")} className="text-xl">
           ←

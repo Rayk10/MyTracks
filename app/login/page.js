@@ -33,7 +33,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center px-6 py-10">
+    <div className="min-h-screen flex flex-col justify-center px-6 py-10 max-w-md mx-auto mt-page-enter">
       <div className="flex justify-center mb-6">
         <Logo size={64} />
       </div>
