@@ -180,18 +180,26 @@ export default function ProfilePage() {
 
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs uppercase tracking-wide text-zinc-500">Amis</p>
-        <button
-          onClick={() => {
-            setFriendSearchOpen(true);
-            setFriendQuery("");
-            setFriendResults([]);
-            setFriendSearchDone(false);
-            setFriendSearchError("");
-          }}
-          className="w-7 h-7 rounded-full bg-mtgold text-black flex items-center justify-center text-sm font-bold"
-        >
-          +
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push("/messages")}
+            className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-sm"
+          >
+            💬
+          </button>
+          <button
+            onClick={() => {
+              setFriendSearchOpen(true);
+              setFriendQuery("");
+              setFriendResults([]);
+              setFriendSearchDone(false);
+              setFriendSearchError("");
+            }}
+            className="w-7 h-7 rounded-full bg-mtgold text-black flex items-center justify-center text-sm font-bold"
+          >
+            +
+          </button>
+        </div>
       </div>
 
       {friends.length === 0 ? (

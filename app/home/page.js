@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import Logo from "@/components/Logo";
 import BottomNav from "@/components/BottomNav";
 import RatingSheet from "@/components/RatingSheet";
 import AlbumDetail from "@/components/AlbumDetail";
 
-export default function HomePage() {
+function HomePageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [userId, setUserId] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,18 +20,25 @@ export default function HomePage() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [activeFilter, setActiveFilter] = useState(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const [playingId, setPlayingId] = useState(null);
   const audioRef = useRef(null);
 
-  const [ratingItem, setRatingItem] = useState(null); // singles/tracks
-  const [albumItem, setAlbumItem] = useState(null); // albums
+  const [ratingItem, setRatingItem] = useState(null);
+  const [albumItem, setAlbumItem] = useState(null);
   const [myRatings, setMyRatings] = useState({});
 
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [artistAlbums, setArtistAlbums] = useState([]);
   const [artistSingles, setArtistSingles] = useState([]);
   const [loadingArtist, setLoadingArtist] = useState(false);
+
+  const [recentItems, setRecentItems] = useState([]);
+  const [totalCounts, setTotalCounts] = useState({ albums: 0, singles: 0 });
+  const [suggested, setSuggested] = useState([]);
+  const [suggestedLabel, setSuggestedLabel] = useState("");
+  const [trending, setTrending] = useState([]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -51,33 +59,96 @@ export default function HomePage() {
 
       const { data: ratingsData } = await supabase
         .from("album_ratings")
-        .select("item_id, rating")
-        .eq("user_id", session.user.id);
+        .select("item_id, rating, updated_at, catalog_items(*)")
+        .eq("user_id", session.user.id)
+        .order("updated_at", { ascending: false });
+
       const map = {};
       (ratingsData || []).forEach((r) => (map[r.item_id] = r.rating));
       setMyRatings(map);
+
+      const withItems = (ratingsData || []).filter((r) => r.catalog_items);
+      setTotalCounts({
+        albums: withItems.filter((r) => r.catalog_items.type === "album").length,
+        singles: withItems.filter((r) => r.catalog_items.type === "single").length,
+      });
+      setRecentItems(
+        withItems.slice(0, 8).map((r) => ({
+          id: r.catalog_items.id,
+          type: r.catalog_items.type,
+          title: r.catalog_items.title,
+          artist: r.catalog_items.artist,
+          coverUrl: r.catalog_items.cover_url,
+          deezerId: r.catalog_items.deezer_id,
+          previewUrl: r.catalog_items.preview_url,
+        }))
+      );
+
+      const genreCounts = {};
+      withItems
+        .filter((r) => r.catalog_items.type === "album" && r.catalog_items.genre)
+        .forEach((r) => {
+          const g = r.catalog_items.genre;
+          genreCounts[g] = (genreCounts[g] || 0) + 1;
+        });
+      const topGenre = Object.entries(genreCounts).sort((a, b) => b[1] - a[1])[0];
+
+      const trendingRes = await fetch("/api/deezer-chart").then((r) => r.json());
+      setTrending((trendingRes.albums || []).slice(0, 8));
+
+      if (topGenre) {
+        setSuggestedLabel(`Suggere pour toi (${topGenre[0]})`);
+        const suggRes = await fetch("/api/deezer-search?q=" + encodeURIComponent(topGenre[0])).then((r) =>
+          r.json()
+        );
+        setSuggested((suggRes.results || []).filter((r) => r.kind === "album").slice(0, 8));
+      } else {
+        setSuggestedLabel("Tendances du moment");
+        setSuggested((trendingRes.albums || []).slice(0, 8));
+      }
 
       setLoading(false);
     });
   }, [router]);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q && q.trim()) {
+      setQuery(q);
+      runSearch(q);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const runSearch = async (q) => {
     setSearching(true);
     setSearchError("");
     setActiveFilter(null);
     try {
-      const res = await fetch("/api/deezer-search?q=" + encodeURIComponent(query));
+      const res = await fetch("/api/deezer-search?q=" + encodeURIComponent(q));
       if (!res.ok) throw new Error("Erreur serveur (" + res.status + ")");
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setResults(data.results || []);
+      setHasSearched(true);
     } catch (err) {
       setSearchError(err.message || "La recherche a echoue.");
     } finally {
       setSearching(false);
     }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    runSearch(query);
+  };
+
+  const clearSearch = () => {
+    setQuery("");
+    setResults([]);
+    setHasSearched(false);
+    setSearchError("");
   };
 
   const openArtist = async (artist) => {
@@ -143,8 +214,30 @@ export default function HomePage() {
     ? results.filter((r) => r.kind === activeFilter)
     : results;
 
+  const AlbumCard = ({ item }) => (
+    <div className="flex-shrink-0 w-32 cursor-pointer" onClick={() => openItem(item)}>
+      <div className="relative">
+        {item.coverUrl ? (
+          <img src={item.coverUrl} alt="" className="w-32 h-32 rounded-xl object-cover" />
+        ) : (
+          <div className="w-32 h-32 rounded-xl bg-zinc-800" />
+        )}
+        <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
+          {item.type === "album" ? "ALBUM" : "SINGLE"}
+        </span>
+        {myRatings[item.id] !== undefined && (
+          <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">
+            {myRatings[item.id]}/{item.type === "album" ? 10 : 5}
+          </span>
+        )}
+      </div>
+      <p className="text-xs font-semibold mt-1.5 truncate">{item.title}</p>
+      <p className="text-[11px] text-zinc-400 truncate">{item.artist}</p>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
+    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto mt-page-enter">
       <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
 
       <div className="flex items-center justify-between mb-5">
@@ -165,6 +258,15 @@ export default function HomePage() {
             placeholder="Chercher un album, un titre, un artiste..."
             className="flex-1 bg-white/10 rounded-full px-4 py-2.5 text-sm outline-none placeholder:text-zinc-400"
           />
+          {hasSearched ? (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="border border-zinc-700 text-zinc-300 rounded-full px-4 py-2 text-sm font-bold"
+            >
+              ×
+            </button>
+          ) : null}
           <button
             type="submit"
             disabled={searching}
@@ -177,7 +279,74 @@ export default function HomePage() {
 
       {searchError ? <p className="text-red-400 text-sm mb-6">{searchError}</p> : null}
 
-      {results.length > 0 ? (
+      {!hasSearched && (
+        <>
+          {recentItems.length > 0 && (
+            <div className="mb-8">
+              <p className="text-lg font-extrabold mb-3 -tracking-wide">Recents</p>
+              <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                {recentItems.map((item) => (
+                  <AlbumCard key={item.id} item={item} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {suggested.length > 0 && (
+            <div className="mb-8">
+              <p className="text-lg font-extrabold mb-3 -tracking-wide">{suggestedLabel}</p>
+              <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                {suggested.map((item) => (
+                  <AlbumCard key={item.id} item={item} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {trending.length > 0 && (
+            <div className="mb-8">
+              <p className="text-lg font-extrabold mb-3 -tracking-wide">Tendances du moment</p>
+              <div className="grid grid-cols-2 gap-3">
+                {trending.map((item) => (
+                  <div key={item.id} className="cursor-pointer" onClick={() => openItem(item)}>
+                    <div className="relative">
+                      {item.coverUrl ? (
+                        <img src={item.coverUrl} alt="" className="w-full aspect-square rounded-xl object-cover" />
+                      ) : (
+                        <div className="w-full aspect-square rounded-xl bg-zinc-800" />
+                      )}
+                      <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
+                        ALBUM
+                      </span>
+                      {myRatings[item.id] !== undefined ? (
+                        <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">
+                          {myRatings[item.id]}/10
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="text-sm font-semibold mt-1.5 truncate">{item.title}</p>
+                    <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p className="text-lg font-extrabold mb-3 -tracking-wide">Tes stats</p>
+          <div className="grid grid-cols-2 gap-3 mb-8">
+            <div className="bg-white/[0.04] rounded-xl p-4">
+              <p className="text-xs text-zinc-400 mb-1">Albums notes</p>
+              <p className="text-2xl font-extrabold text-mtgold">{totalCounts.albums}</p>
+            </div>
+            <div className="bg-white/[0.04] rounded-xl p-4">
+              <p className="text-xs text-zinc-400 mb-1">Titres notes</p>
+              <p className="text-2xl font-extrabold text-mtgold">{totalCounts.singles}</p>
+            </div>
+          </div>
+        </>
+      )}
+
+      {hasSearched && results.length > 0 ? (
         <div className="flex gap-2 mb-5">
           <button
             onClick={() => setActiveFilter(activeFilter === "artist" ? null : "artist")}
@@ -209,7 +378,7 @@ export default function HomePage() {
         </div>
       ) : null}
 
-      {displayedResults.length > 0 ? (
+      {hasSearched && displayedResults.length > 0 ? (
         <div className="flex flex-col gap-3 mb-8">
           {displayedResults.map((item) => {
             if (item.kind === "artist") {
@@ -269,6 +438,10 @@ export default function HomePage() {
             );
           })}
         </div>
+      ) : null}
+
+      {hasSearched && !searching && results.length === 0 && !searchError ? (
+        <p className="text-zinc-400 text-sm">Aucun resultat pour cette recherche.</p>
       ) : null}
 
       {selectedArtist ? (
@@ -396,5 +569,19 @@ export default function HomePage() {
 
       <BottomNav />
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-mtgold text-sm">Chargement...</p>
+        </div>
+      }
+    >
+      <HomePageContent />
+    </Suspense>
   );
 }
