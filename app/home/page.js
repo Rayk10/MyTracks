@@ -59,7 +59,7 @@ function HomePageContent() {
       try {
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("pseudo")
+          .select("pseudo, avatar_url")
           .eq("id", session.user.id)
           .single();
         setProfile(profileData);
@@ -263,9 +263,15 @@ function HomePageContent() {
 
       <div className="flex items-center justify-between mb-5">
         <Logo size={40} />
-        <div className="w-9 h-9 rounded-full bg-mtgold text-black font-bold text-sm flex items-center justify-center">
-          {profile && profile.pseudo ? profile.pseudo.slice(0, 1).toUpperCase() : ""}
-        </div>
+        <button onClick={() => router.push("/profile")}>
+          {profile && profile.avatar_url ? (
+            <img src={profile.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover" />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-mtgold text-black font-bold text-sm flex items-center justify-center">
+              {profile && profile.pseudo ? profile.pseudo.slice(0, 1).toUpperCase() : ""}
+            </div>
+          )}
+        </button>
       </div>
 
       <div className="bg-white/[0.04] border border-white/[0.06] rounded-2xl p-4 mb-6">

@@ -10,6 +10,8 @@ import { ChatIcon } from "@/components/icons";
 export default function ProfilePage() {
   const router = useRouter();
   const [userId, setUserId] = useState(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ albums: 0, tracks: 0 });
@@ -63,7 +65,7 @@ export default function ProfilePage() {
 
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("pseudo")
+        .select("pseudo, avatar_url")
         .eq("id", session.user.id)
         .single();
       setProfile(profileData);
@@ -181,6 +183,36 @@ export default function ProfilePage() {
     setFriends((prev) => (prev.some((f) => f.id === friend.id) ? prev : [...prev, friend]));
   };
 
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file || !userId) return;
+    setUploadingAvatar(true);
+    setAvatarError("");
+    const supabase = createClient();
+
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${userId}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file);
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const avatarUrl = publicUrlData.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: avatarUrl })
+        .eq("id", userId);
+      if (updateError) throw updateError;
+
+      setProfile((prev) => ({ ...prev, avatar_url: avatarUrl }));
+    } catch (err) {
+      setAvatarError(err.message || "Erreur lors de l'envoi de la photo.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -199,9 +231,24 @@ export default function ProfilePage() {
     <div className="min-h-screen px-4 pt-8 pb-28 max-w-md mx-auto">
       <div className="mt-page-enter">
       <div className="flex flex-col items-center mb-6">
-        <div className="w-24 h-24 rounded-full bg-mtgold text-black font-extrabold text-4xl flex items-center justify-center mb-3">
-          {profile && profile.pseudo ? profile.pseudo.slice(0, 1).toUpperCase() : ""}
-        </div>
+        <label className="cursor-pointer relative">
+          {profile && profile.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt=""
+              className="w-24 h-24 rounded-full object-cover mb-3"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-mtgold text-black font-extrabold text-4xl flex items-center justify-center mb-3">
+              {profile && profile.pseudo ? profile.pseudo.slice(0, 1).toUpperCase() : ""}
+            </div>
+          )}
+          <div className="absolute bottom-3 right-0 w-7 h-7 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-xs">
+            {uploadingAvatar ? "..." : "✎"}
+          </div>
+          <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+        </label>
+        {avatarError ? <p className="text-red-400 text-xs mb-2">{avatarError}</p> : null}
         <p className="text-xl font-extrabold">{profile ? profile.pseudo : ""}</p>
       </div>
 
