@@ -223,7 +223,11 @@ export default function SearchCategoryPage() {
               ) : (
                 <div className="w-full aspect-square rounded-xl bg-zinc-800" />
               )}
-              <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
+              <span
+                className={`absolute top-2 left-2 text-[10px] font-bold rounded px-1.5 py-0.5 ${
+                  item.kind === "track" || item.type === "single" ? "bg-mtgold text-black" : "bg-purple-600 text-white"
+                }`}
+              >
                 {item.kind === "track" || item.type === "single"
                   ? "SINGLE"
                   : item.releaseType === "ep"

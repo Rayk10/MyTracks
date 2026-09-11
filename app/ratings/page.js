@@ -246,7 +246,11 @@ export default function RatingsPage() {
                   <p className="text-sm font-medium truncate">{item.title}</p>
                   <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
                 </div>
-                <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1.5 py-0.5 flex-shrink-0">
+                <span
+                  className={`text-[9px] font-bold rounded px-1.5 py-0.5 flex-shrink-0 ${
+                    item.type === "album" ? "bg-purple-600 text-white" : "bg-mtgold text-black"
+                  }`}
+                >
                   {item.type === "album" ? (item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM") : "SINGLE"}
                 </span>
               </div>
@@ -339,7 +343,7 @@ export default function RatingsPage() {
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-medium truncate">{item.title}</p>
                   {subTab === "albums" && (
-                    <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                    <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
                       {item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM"}
                     </span>
                   )}
@@ -401,7 +405,11 @@ export default function RatingsPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-medium truncate">{item.title}</p>
-                  <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                  <span
+                    className={`text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0 ${
+                      item.type === "album" ? "bg-purple-600 text-white" : "bg-mtgold text-black"
+                    }`}
+                  >
                     {item.type === "album"
                       ? item.releaseType === "ep"
                         ? "EP"

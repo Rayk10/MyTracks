@@ -385,7 +385,11 @@ export default function SearchHubPage() {
                 <div className="flex-1 min-w-0 cursor-pointer" onClick={() => openItem(item)}>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium truncate">{item.title}</p>
-                    <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                    <span
+                      className={`text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0 ${
+                        item.kind === "album" ? "bg-purple-600 text-white" : "bg-mtgold text-black"
+                      }`}
+                    >
                       {item.kind === "album"
                         ? item.releaseType === "ep"
                           ? "EP"
@@ -566,7 +570,7 @@ export default function SearchHubPage() {
                             ) : (
                               <div className="w-full aspect-square rounded-xl bg-zinc-800" />
                             )}
-                            <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
+                            <span className="absolute top-2 left-2 bg-purple-600 text-white text-[10px] font-bold rounded px-1.5 py-0.5">
                               {item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM"}
                             </span>
                             {myRatings[item.id] !== undefined ? (

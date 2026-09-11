@@ -451,7 +451,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
         )}
 
         <div className="flex justify-center mb-6">
-          <span className="text-xs font-bold rounded-full px-3 py-1.5 bg-white/[0.06] text-zinc-300">
+          <span className="text-xs font-bold rounded-full px-3 py-1.5 bg-purple-600 text-white">
             {releaseType === "ep" ? "EP" : releaseType === "mixtape" ? "Mixtape" : "Album"}
           </span>
         </div>

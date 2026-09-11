@@ -216,7 +216,7 @@ export default function ListDetailPage() {
               <div className="flex items-center gap-1.5">
                 <p className="text-sm font-medium truncate">{it.title}</p>
                 {it.type === "album" && (
-                  <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                  <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
                     {it.release_type === "ep" ? "EP" : it.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
                   </span>
                 )}

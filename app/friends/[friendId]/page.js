@@ -157,7 +157,7 @@ export default function FriendProfilePage() {
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium truncate">{r.catalog_items.title}</p>
                     {r.catalog_items.type === "album" && (
-                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
                         {r.catalog_items.release_type === "ep"
                           ? "EP"
                           : r.catalog_items.release_type === "mixtape"

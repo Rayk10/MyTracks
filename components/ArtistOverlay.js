@@ -162,7 +162,7 @@ export default function ArtistOverlay({ artistName, artistId, userId, onClose })
                     ) : (
                       <div className="w-full aspect-square rounded-xl bg-zinc-800" />
                     )}
-                    <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
+                    <span className="absolute top-2 left-2 bg-purple-600 text-white text-[10px] font-bold rounded px-1.5 py-0.5">
                       {item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM"}
                     </span>
                     {myRatings[item.id] !== undefined ? (

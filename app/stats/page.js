@@ -289,7 +289,7 @@ export default function StatsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
+            className="bg-zinc-900 w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-base">
@@ -344,7 +344,7 @@ export default function StatsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">{r.item.title}</p>
-                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
                         {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
                       </span>
                     </div>
@@ -377,7 +377,7 @@ export default function StatsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">{r.item.title}</p>
-                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
                         {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
                       </span>
                     </div>
@@ -420,7 +420,7 @@ export default function StatsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
+            className="bg-zinc-900 w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-base">Tes projets préférés</p>
@@ -447,7 +447,7 @@ export default function StatsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">{r.item.title}</p>
-                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
                         {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
                       </span>
                     </div>
@@ -473,7 +473,7 @@ export default function StatsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
+            className="bg-zinc-900 w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-base">Notes de {bucketListOpen.n}</p>
@@ -511,7 +511,7 @@ export default function StatsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">{r.item.title}</p>
-                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
                         {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
                       </span>
                     </div>
@@ -537,7 +537,7 @@ export default function StatsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
+            className="bg-zinc-900 w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-base">Notes de {singleBucketListOpen.n}</p>
@@ -578,7 +578,7 @@ export default function StatsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">{r.item.title}</p>
-                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
                         {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
                       </span>
                     </div>
@@ -604,7 +604,7 @@ export default function StatsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
+            className="bg-zinc-900 w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-base">Tes genres préférés</p>
@@ -641,7 +641,7 @@ export default function StatsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[75vh] overflow-y-auto"
+            className="bg-zinc-900 w-full max-w-md rounded-2xl p-6 max-h-[85vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-base">{genreAlbumsOpen.genre}</p>
@@ -669,7 +669,7 @@ export default function StatsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">{r.item.title}</p>
-                      <span className="bg-white/10 text-zinc-300 text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
                         {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
                       </span>
                     </div>
