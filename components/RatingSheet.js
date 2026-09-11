@@ -48,7 +48,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
 
   if (!item) return null;
 
-  const canLinkArtist = !disableArtistLink && !!(item.artistId || item.deezerId);
+  const canLinkArtist = !disableArtistLink && !!(item.artistId || item.deezerId || item.deezer_id);
   const computeStarValue = (clientX) => {
     const rect = starsRef.current.getBoundingClientRect();
     const ratio = (clientX - rect.left) / rect.width;
