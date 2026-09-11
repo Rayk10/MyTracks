@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabaseClient";
 import CommunityRating from "@/components/CommunityRating";
 import ShareButton from "@/components/ShareButton";
@@ -13,6 +13,9 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const [loadingComment, setLoadingComment] = useState(true);
+  const [saveError, setSaveError] = useState("");
+  const starsRef = useRef(null);
+  const [draggingStars, setDraggingStars] = useState(false);
 
   useEffect(() => {
     if (!item || !userId) return;
@@ -34,13 +37,27 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
 
   if (!item) return null;
 
-  const handleStarClick = (e, n) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const isLeftHalf = e.clientX - rect.left < rect.width / 2;
-    setRatingValue(isLeftHalf ? n - 0.5 : n);
+  const computeStarValue = (clientX) => {
+    const rect = starsRef.current.getBoundingClientRect();
+    const ratio = (clientX - rect.left) / rect.width;
+    const raw = Math.max(0.5, Math.min(5, ratio * 5));
+    return Math.round(raw * 2) / 2;
   };
 
-  const [saveError, setSaveError] = useState("");
+  const handleStarsPointerDown = (e) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDraggingStars(true);
+    setRatingValue(computeStarValue(e.clientX));
+  };
+
+  const handleStarsPointerMove = (e) => {
+    if (!draggingStars) return;
+    setRatingValue(computeStarValue(e.clientX));
+  };
+
+  const handleStarsPointerUp = () => {
+    setDraggingStars(false);
+  };
 
   const save = async () => {
     setSaving(true);
@@ -149,16 +166,20 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
 
         <div className="bg-white/[0.04] rounded-2xl p-4 mb-5">
           <p className="text-xs text-zinc-400 mb-3">Ta note du titre, sur 5</p>
-          <div className="flex gap-1.5">
+          <div
+            ref={starsRef}
+            onPointerDown={handleStarsPointerDown}
+            onPointerMove={handleStarsPointerMove}
+            onPointerUp={handleStarsPointerUp}
+            onPointerCancel={handleStarsPointerUp}
+            style={{ touchAction: "none" }}
+            className="flex gap-1.5 select-none"
+          >
             {[1, 2, 3, 4, 5].map((n) => {
               const full = ratingValue >= n;
               const half = !full && ratingValue >= n - 0.5;
               return (
-                <button
-                  key={n}
-                  onClick={(e) => handleStarClick(e, n)}
-                  style={{ width: 32, height: 32, position: "relative" }}
-                >
+                <div key={n} style={{ width: 32, height: 32, position: "relative" }} className="flex-shrink-0">
                   <span style={{ fontSize: 32, lineHeight: 1, color: "#3f3f46", position: "absolute", inset: 0 }}>
                     ☆
                   </span>
@@ -177,7 +198,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
                       ★
                     </span>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
