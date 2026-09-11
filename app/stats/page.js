@@ -8,6 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import AlbumDetail from "@/components/AlbumDetail";
 import RatingSheet from "@/components/RatingSheet";
 import useBackButtonClose from "@/hooks/useBackButtonClose";
+import ArtistOverlay from "@/components/ArtistOverlay";
 
 export default function StatsPage() {
   const router = useRouter();
@@ -27,9 +28,11 @@ export default function StatsPage() {
   const [statsListOpen, setStatsListOpen] = useState(null); // "albums" | "singles" | "artists" | null
   const [statsSort, setStatsSort] = useState("recent");
   const [artistPictures, setArtistPictures] = useState({});
+  const [artistOverlay, setArtistOverlay] = useState(null);
 
   useBackButtonClose(!!albumItem, () => setAlbumItem(null));
   useBackButtonClose(!!ratingItem, () => setRatingItem(null));
+  useBackButtonClose(!!artistOverlay, () => setArtistOverlay(null));
   useBackButtonClose(!!statsListOpen, () => setStatsListOpen(null));
 
   const loadStats = async (uid) => {
@@ -418,7 +421,7 @@ export default function StatsPage() {
                     key={a.name}
                     onClick={() => {
                       setStatsListOpen(null);
-                      router.push(`/home?q=${encodeURIComponent(a.name)}`);
+                      setArtistOverlay({ name: a.name, artistId: a.artistId });
                     }}
                     className="flex items-center justify-between cursor-pointer gap-3"
                   >
@@ -733,6 +736,15 @@ export default function StatsPage() {
         onClose={() => setRatingItem(null)}
         onSaved={handleSingleSaved}
       />
+
+      {artistOverlay && (
+        <ArtistOverlay
+          artistName={artistOverlay.name}
+          artistId={artistOverlay.artistId}
+          userId={userId}
+          onClose={() => setArtistOverlay(null)}
+        />
+      )}
 
       <BottomNav />
     </div>
