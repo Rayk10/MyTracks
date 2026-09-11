@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Spinner from "@/components/Spinner";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import ListCoverMosaic from "@/components/ListCoverMosaic";
@@ -119,7 +120,7 @@ export default function ListDetailPage() {
   if (loading || !list) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-mtgold text-sm">Chargement...</p>
+        <Spinner />
       </div>
     );
   }

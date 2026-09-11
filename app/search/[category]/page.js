@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Spinner from "@/components/Spinner";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import RatingSheet from "@/components/RatingSheet";
@@ -191,7 +192,7 @@ export default function SearchCategoryPage() {
         </div>
       )}
 
-      {loading && <p className="text-zinc-400 text-sm">Chargement...</p>}
+      {loading && <Spinner size={20} />}
       {!loading && displayedItems.length === 0 && (
         <p className="text-zinc-400 text-sm">Rien à afficher pour l&apos;instant.</p>
       )}

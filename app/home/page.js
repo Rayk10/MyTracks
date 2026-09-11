@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, Suspense } from "react";
+import Spinner from "@/components/Spinner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import Logo from "@/components/Logo";
@@ -224,7 +225,7 @@ function HomePageContent() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-mtgold text-sm">Chargement...</p>
+        <Spinner />
       </div>
     );
   }
@@ -502,7 +503,7 @@ function HomePageContent() {
 
           <div className="px-4 pt-5 pb-28">
             <p className="text-lg font-extrabold mb-3">Projets</p>
-            {loadingArtist ? <p className="text-zinc-400 text-sm">Chargement des projets...</p> : null}
+            {loadingArtist ? <Spinner size={20} /> : null}
             {!loadingArtist && artistAlbums.length === 0 ? (
               <p className="text-zinc-400 text-sm">Aucun projet trouvé pour cet artiste.</p>
             ) : null}
@@ -603,7 +604,7 @@ export default function HomePage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
-          <p className="text-mtgold text-sm">Chargement...</p>
+          <Spinner />
         </div>
       }
     >

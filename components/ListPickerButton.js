@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Spinner from "@/components/Spinner";
 import { createClient } from "@/lib/supabaseClient";
 
 export default function ListPickerButton({ userId, itemPayload }) {
@@ -58,7 +59,7 @@ export default function ListPickerButton({ userId, itemPayload }) {
                 ×
               </button>
             </div>
-            {loading && <p className="text-zinc-400 text-sm">Chargement...</p>}
+            {loading && <Spinner size={20} />}
             {!loading && lists.length === 0 && (
               <p className="text-zinc-400 text-sm">
                 Tu n&apos;as encore aucune liste. Créé-en une depuis &quot;Mes notes&quot;.

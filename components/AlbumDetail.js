@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Spinner from "@/components/Spinner";
 import { createClient } from "@/lib/supabaseClient";
 import Stars from "@/components/Stars";
 import CommunityRating from "@/components/CommunityRating";
@@ -368,7 +369,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
 
         {tracksOpen && (
           <div className="flex flex-col gap-3 mt-3">
-            {loading && <p className="text-zinc-400 text-sm">Chargement des titres...</p>}
+            {loading && <Spinner size={20} />}
             {!loading && tracks.length === 0 && (
               <p className="text-zinc-400 text-sm">Impossible de récupérer la liste des titres.</p>
             )}
