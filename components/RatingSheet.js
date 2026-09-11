@@ -179,7 +179,6 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
     setRatingValue(2.5);
     setComment("");
     onSaved(item.id, null);
-    onClose();
   };
 
   return (

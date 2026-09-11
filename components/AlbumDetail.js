@@ -349,7 +349,6 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
     setComment("");
     setManualOverride(false);
     if (onSaved) onSaved(item.id, null);
-    onClose();
   };
 
   const resetTrackRating = async (index) => {
