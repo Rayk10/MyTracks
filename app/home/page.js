@@ -256,7 +256,8 @@ function HomePageContent() {
   );
 
   return (
-    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto mt-page-enter">
+    <div className="min-h-screen px-4 pt-6 pb-28 max-w-md mx-auto">
+      <div className="mt-page-enter">
       <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
 
       <div className="flex items-center justify-between mb-5">
@@ -462,6 +463,7 @@ function HomePageContent() {
       {hasSearched && !searching && results.length === 0 && !searchError ? (
         <p className="text-zinc-400 text-sm">Aucun résultat pour cette recherche.</p>
       ) : null}
+      </div>
 
       {selectedArtist ? (
         <div className="fixed inset-0 bg-black z-30 overflow-y-auto max-w-md mx-auto">

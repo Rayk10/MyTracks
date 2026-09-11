@@ -125,7 +125,8 @@ export default function ListDetailPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 pt-6 pb-16 max-w-md mx-auto mt-page-enter">
+    <div className="min-h-screen px-4 pt-6 pb-16 max-w-md mx-auto">
+      <div className="mt-page-enter">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.push("/ratings")} className="text-xl">
           ←
@@ -229,6 +230,7 @@ export default function ListDetailPage() {
             </button>
           </div>
         ))}
+      </div>
       </div>
 
       {pickerOpen && (

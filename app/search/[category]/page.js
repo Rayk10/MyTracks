@@ -161,7 +161,8 @@ export default function SearchCategoryPage() {
     : items.filter((it) => (it.releaseType || "album") === typeFilter);
 
   return (
-    <div className="min-h-screen px-4 pt-6 pb-16 max-w-md mx-auto mt-page-enter">
+    <div className="min-h-screen px-4 pt-6 pb-16 max-w-md mx-auto">
+      <div className="mt-page-enter">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.push("/search")} className="text-xl">
           ←
@@ -230,6 +231,7 @@ export default function SearchCategoryPage() {
             ) : null}
           </div>
         ))}
+      </div>
       </div>
 
       <RatingSheet
