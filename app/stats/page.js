@@ -343,11 +343,11 @@ export default function StatsPage() {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-medium truncate">{r.item.title}</p>
-                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
-                        {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
-                      </span>
-                    </div>
+                        <p className="text-sm font-medium truncate">{r.item.title}</p>
+                        <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                          {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                        </span>
+                      </div>
                       <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                       {r.updatedAt && (
                         <p className="text-[10px] text-zinc-500">
@@ -375,12 +375,7 @@ export default function StatsPage() {
                       <div className="w-10 h-10 rounded-lg bg-zinc-800" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium truncate">{r.item.title}</p>
-                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
-                        {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
-                      </span>
-                    </div>
                       <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                       {r.updatedAt && (
                         <p className="text-[10px] text-zinc-500">
@@ -576,12 +571,7 @@ export default function StatsPage() {
                     <div className="w-10 h-10 rounded-lg bg-zinc-800" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-medium truncate">{r.item.title}</p>
-                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
-                        {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
-                      </span>
-                    </div>
+                    <p className="text-sm font-medium truncate">{r.item.title}</p>
                     <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                       {r.updatedAt && (
                         <p className="text-[10px] text-zinc-500">
@@ -668,11 +658,11 @@ export default function StatsPage() {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-medium truncate">{r.item.title}</p>
-                      <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
-                        {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
-                      </span>
-                    </div>
+                        <p className="text-sm font-medium truncate">{r.item.title}</p>
+                        <span className="bg-purple-600 text-white text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                          {r.item.release_type === "ep" ? "EP" : r.item.release_type === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                        </span>
+                      </div>
                       <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                       {r.updatedAt && (
                         <p className="text-[10px] text-zinc-500">
