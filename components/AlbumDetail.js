@@ -374,13 +374,13 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
             )}
             {tracks.map((t) => (
               <div key={t.index} className="flex items-center justify-between gap-3">
-                <span className="text-sm text-zinc-300 truncate flex-1">
+                <span className="text-base text-zinc-300 truncate flex-1">
                   {t.index}. {t.title}
                 </span>
                 <Stars
                   value={trackRatings[t.index] || 0}
                   onChange={(v) => handleTrackRate(t.index, v)}
-                  size={16}
+                  size={20}
                 />
               </div>
             ))}
