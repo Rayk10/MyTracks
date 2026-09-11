@@ -348,7 +348,7 @@ export default function RatingsPage() {
 
       {subTab === "watchlist" && (
         <div className="flex flex-col gap-3">
-          {watchlistItems.length > 1 && (
+          {watchlistItems.length > 0 && (
             <div className="flex gap-2 mb-2">
               {[
                 { key: "all", label: "Tout" },

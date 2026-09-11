@@ -262,6 +262,30 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       return;
     }
 
+    // Ce titre devient aussi un vrai "single" independant, visible dans Mes notes et les Stats
+    const trackInfo = tracks.find((t) => t.index === index);
+    if (trackInfo) {
+      const singleId = `${item.id}-track-${index}`;
+      const { error: singleCatalogError } = await supabase.from("catalog_items").upsert({
+        id: singleId,
+        type: "single",
+        title: trackInfo.title,
+        artist: item.artist,
+        cover_url: item.coverUrl,
+        preview_url: trackInfo.previewUrl || null,
+      });
+      if (!singleCatalogError) {
+        await supabase.from("album_ratings").upsert(
+          {
+            user_id: realUserId,
+            item_id: singleId,
+            rating: value,
+          },
+          { onConflict: "user_id,item_id" }
+        );
+      }
+    }
+
     const values = Object.values(updated);
     const avg = (values.reduce((s, v) => s + v, 0) / values.length) * 2;
     await saveAlbumRating(avg, comment);
