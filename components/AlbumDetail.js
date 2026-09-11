@@ -9,6 +9,7 @@ import ShareButton from "@/components/ShareButton";
 import ListPickerButton from "@/components/ListPickerButton";
 import StreamingLinks from "@/components/StreamingLinks";
 import useBackButtonClose from "@/hooks/useBackButtonClose";
+import CommunityComments from "@/components/CommunityComments";
 import WatchlistButton from "@/components/WatchlistButton";
 
 export default function AlbumDetail({ item, userId, onClose, onSaved }) {
@@ -357,6 +358,8 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
         )}
 
         <CommunityRating itemId={item.id} maxScale={10} />
+
+        <CommunityComments itemId={item.id} userId={userId} maxScale={10} />
 
         <WatchlistButton
           userId={userId}

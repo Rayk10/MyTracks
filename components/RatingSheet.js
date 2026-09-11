@@ -6,6 +6,7 @@ import CommunityRating from "@/components/CommunityRating";
 import ShareButton from "@/components/ShareButton";
 import ListPickerButton from "@/components/ListPickerButton";
 import WatchlistButton from "@/components/WatchlistButton";
+import CommunityComments from "@/components/CommunityComments";
 import StreamingLinks from "@/components/StreamingLinks";
 
 export default function RatingSheet({ item, userId, currentRating, onClose, onSaved }) {
@@ -146,6 +147,8 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
         </p>
 
         <CommunityRating itemId={item.id} maxScale={5} />
+
+        <CommunityComments itemId={item.id} userId={userId} maxScale={5} />
 
         <WatchlistButton
           userId={userId}
