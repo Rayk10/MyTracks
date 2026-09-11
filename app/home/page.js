@@ -84,8 +84,15 @@ function HomePageContent() {
           albums: withItems.filter((r) => r.catalog_items.type === "album").length,
           singles: withItems.filter((r) => r.catalog_items.type === "single").length,
         });
+        const seenCovers = new Set();
+        const dedupedRecent = withItems.filter((r) => {
+          const key = r.catalog_items.cover_url || r.catalog_items.id;
+          if (seenCovers.has(key)) return false;
+          seenCovers.add(key);
+          return true;
+        });
         setRecentItems(
-          withItems.slice(0, 8).map((r) => ({
+          dedupedRecent.slice(0, 8).map((r) => ({
             id: r.catalog_items.id,
             type: r.catalog_items.type,
             title: r.catalog_items.title,
