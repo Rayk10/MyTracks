@@ -148,12 +148,28 @@ export default function SearchCategoryPage() {
   };
 
   const handleRatingSaved = (itemId, value) => {
-    setMyRatings((prev) => Object.assign({}, prev, { [itemId]: value }));
+    setMyRatings((prev) => {
+      const updated = { ...prev };
+      if (value === null) {
+        delete updated[itemId];
+      } else {
+        updated[itemId] = value;
+      }
+      return updated;
+    });
     setRatingItem(null);
   };
 
   const handleAlbumSaved = (itemId, value) => {
-    setMyRatings((prev) => Object.assign({}, prev, { [itemId]: value }));
+    setMyRatings((prev) => {
+      const updated = { ...prev };
+      if (value === null) {
+        delete updated[itemId];
+      } else {
+        updated[itemId] = value;
+      }
+      return updated;
+    });
   };
 
   const displayedItems = hasSingles

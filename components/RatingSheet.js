@@ -149,6 +149,39 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
     }, 1200);
   };
 
+  const resetRating = async () => {
+    setSaving(true);
+    setSaveError("");
+    const supabase = createClient();
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setSaving(false);
+      setSaveError("Ta session a expire. Reconnecte-toi puis reessaie.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("album_ratings")
+      .delete()
+      .eq("user_id", session.user.id)
+      .eq("item_id", item.id);
+
+    setSaving(false);
+    if (error) {
+      setSaveError("Erreur (reinitialisation) : " + error.message);
+      return;
+    }
+
+    setRatingValue(2.5);
+    setComment("");
+    onSaved(item.id, null);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 bg-black z-40 overflow-y-auto max-w-md mx-auto">
       <div className="flex justify-end px-4 pt-4">
@@ -289,6 +322,16 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
         >
           {saving ? "..." : justSaved ? "✓ Enregistré" : "ENREGISTRER LA NOTE"}
         </button>
+
+        {currentRating !== undefined && (
+          <button
+            onClick={resetRating}
+            disabled={saving}
+            className="w-full text-red-400 text-sm font-bold py-3 disabled:opacity-50"
+          >
+            Réinitialiser la note
+          </button>
+        )}
       </div>
 
       {artistOverlayOpen && (

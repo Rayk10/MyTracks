@@ -228,7 +228,14 @@ export default function ArtistOverlay({ artistName, artistId, userId, onClose })
         userId={userId}
         currentRating={ratingItem ? myRatings[ratingItem.id] : undefined}
         onClose={() => setRatingItem(null)}
-        onSaved={(id, v) => setMyRatings((p) => ({ ...p, [id]: v }))}
+        onSaved={(id, v) =>
+          setMyRatings((p) => {
+            const updated = { ...p };
+            if (v === null) delete updated[id];
+            else updated[id] = v;
+            return updated;
+          })
+        }
         disableArtistLink
         disableAlbumLink
       />
@@ -237,7 +244,14 @@ export default function ArtistOverlay({ artistName, artistId, userId, onClose })
         item={albumItem}
         userId={userId}
         onClose={() => setAlbumItem(null)}
-        onSaved={(id, v) => setMyRatings((p) => ({ ...p, [id]: v }))}
+        onSaved={(id, v) =>
+          setMyRatings((p) => {
+            const updated = { ...p };
+            if (v === null) delete updated[id];
+            else updated[id] = v;
+            return updated;
+          })
+        }
         disableArtistLink
       />
     </div>

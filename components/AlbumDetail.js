@@ -319,6 +319,81 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
     await saveAlbumRating(avg, comment, false);
   };
 
+  const resetAlbumRating = async () => {
+    setSaving(true);
+    setSaveError("");
+    const supabase = createClient();
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      setSaving(false);
+      setSaveError("Ta session a expire. Reconnecte-toi puis reessaie.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("album_ratings")
+      .delete()
+      .eq("user_id", session.user.id)
+      .eq("item_id", item.id);
+
+    setSaving(false);
+    if (error) {
+      setSaveError("Erreur (réinitialisation) : " + error.message);
+      return;
+    }
+
+    setDirectRating(5);
+    setComment("");
+    setManualOverride(false);
+    if (onSaved) onSaved(item.id, null);
+    onClose();
+  };
+
+  const resetTrackRating = async (index) => {
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      setSaveError("Ta session a expire. Reconnecte-toi puis reessaie.");
+      return;
+    }
+
+    await supabase
+      .from("track_ratings")
+      .delete()
+      .eq("user_id", session.user.id)
+      .eq("item_id", item.id)
+      .eq("track_index", index);
+
+    await supabase
+      .from("album_ratings")
+      .delete()
+      .eq("user_id", session.user.id)
+      .eq("item_id", `${item.id}-track-${index}`);
+
+    setTrackRatings((prev) => {
+      const updated = { ...prev };
+      delete updated[index];
+      return updated;
+    });
+
+    if (!manualOverride) {
+      const remaining = Object.values(trackRatings).filter((_, i) => i !== index);
+      const values = Object.entries(trackRatings)
+        .filter(([i]) => Number(i) !== index)
+        .map(([, v]) => v);
+      if (values.length > 0) {
+        const avg = Math.round(((values.reduce((s, v) => s + v, 0) / values.length) * 2) * 2) / 2;
+        setDirectRating(avg);
+        await saveAlbumRating(avg, comment, false);
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black z-40 overflow-y-auto max-w-md mx-auto">
       <div className="flex justify-end px-4 pt-4">
@@ -464,6 +539,14 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
         </button>
 
         <button
+          onClick={resetAlbumRating}
+          disabled={saving}
+          className="w-full text-red-400 text-sm font-bold py-3 mb-3 disabled:opacity-50"
+        >
+          Réinitialiser la note de l&apos;album
+        </button>
+
+        <button
           onClick={() => setTracksOpen((v) => !v)}
           className="w-full flex items-center justify-between text-sm font-bold py-2"
         >
@@ -491,6 +574,14 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
                   onChangeEnd={(v) => handleTrackRate(t.index, v)}
                   size={20}
                 />
+                {trackRatings[t.index] ? (
+                  <button
+                    onClick={() => resetTrackRating(t.index)}
+                    className="text-zinc-500 text-xs flex-shrink-0 ml-1"
+                  >
+                    ✕
+                  </button>
+                ) : null}
               </div>
             ))}
             <audio ref={previewAudioRef} onEnded={() => setPreviewPlayingIndex(null)} />
@@ -533,7 +624,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
             ) : null}
 
             <p className="text-xs text-zinc-400 mb-3">Ta note du titre, sur 5</p>
-            <div className="mb-5">
+            <div className="mb-2">
               <Stars
                 value={trackRatings[trackDetailOpen.index] || 0}
                 onChange={(v) => handleTrackPreview(trackDetailOpen.index, v)}
@@ -541,6 +632,16 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
                 size={28}
               />
             </div>
+            {trackRatings[trackDetailOpen.index] ? (
+              <button
+                onClick={() => resetTrackRating(trackDetailOpen.index)}
+                className="text-red-400 text-xs font-bold mb-5"
+              >
+                Réinitialiser la note de ce titre
+              </button>
+            ) : (
+              <div className="mb-5" />
+            )}
 
             <WatchlistButton
               userId={userId}
