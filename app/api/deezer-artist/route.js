@@ -23,6 +23,29 @@ export async function GET(request) {
       safety += 1;
     }
 
+    // Deezer ne remonte parfois pas tout via /artist/{id}/albums (cas particuliers : reeditions,
+    // compilations reprises par le label...). On croise avec une recherche avancee par nom
+    // d'artiste pour rattraper ce que la premiere methode pourrait louper.
+    try {
+      let searchNextUrl = `https://api.deezer.com/search/album?q=${encodeURIComponent(
+        `artist:"${artistName}"`
+      )}&limit=100`;
+      let searchSafety = 0;
+      const targetNameLower = artistName.trim().toLowerCase();
+      while (searchNextUrl && searchSafety < 10) {
+        const searchRes = await fetch(searchNextUrl);
+        const searchData = await searchRes.json();
+        const matching = (searchData.data || []).filter(
+          (a) => a.artist && a.artist.name && a.artist.name.trim().toLowerCase() === targetNameLower
+        );
+        allReleases = allReleases.concat(matching);
+        searchNextUrl = searchData.next || null;
+        searchSafety += 1;
+      }
+    } catch (err) {
+      // si cette seconde source echoue, on garde simplement ce que la premiere a donne
+    }
+
     const seenReleaseIds = new Set();
     const rawReleases = allReleases.filter((a) => {
       if (seenReleaseIds.has(a.id)) return false;
