@@ -26,6 +26,7 @@ export default function StatsPage() {
 
   const [statsListOpen, setStatsListOpen] = useState(null); // "albums" | "singles" | "artists" | null
   const [statsSort, setStatsSort] = useState("recent");
+  const [artistPictures, setArtistPictures] = useState({});
 
   useBackButtonClose(!!albumItem, () => setAlbumItem(null));
   useBackButtonClose(!!ratingItem, () => setRatingItem(null));
@@ -81,6 +82,7 @@ export default function StatsPage() {
       coverUrl: catalogItem.cover_url,
       deezerId: catalogItem.deezer_id,
       previewUrl: catalogItem.preview_url,
+      rating,
     });
   };
 
@@ -131,7 +133,7 @@ export default function StatsPage() {
   const artistMap = {};
   [...albumRatings, ...singleRatings].forEach((r) => {
     const name = r.item.artist;
-    if (!artistMap[name]) artistMap[name] = { name, count: 0, lastRated: r.updatedAt };
+    if (!artistMap[name]) artistMap[name] = { name, artistId: r.item.artist_id, count: 0, lastRated: r.updatedAt };
     artistMap[name].count += 1;
     if (new Date(r.updatedAt) > new Date(artistMap[name].lastRated)) {
       artistMap[name].lastRated = r.updatedAt;
@@ -168,6 +170,26 @@ export default function StatsPage() {
   const openStatsList = (type) => {
     setStatsSort(type === "artists" ? "most" : "recent");
     setStatsListOpen(type);
+
+    if (type === "artists") {
+      artistsList.forEach((a) => {
+        if (artistPictures[a.name] !== undefined) return;
+        const lookupUrl = a.artistId
+          ? "/api/deezer-artist-lookup?id=" + a.artistId
+          : "/api/deezer-artist-lookup?name=" + encodeURIComponent(a.name);
+        fetch(lookupUrl)
+          .then((r) => r.json())
+          .then((data) => {
+            setArtistPictures((prev) => ({
+              ...prev,
+              [a.name]: data.artist ? data.artist.pictureUrl : null,
+            }));
+          })
+          .catch(() => {
+            setArtistPictures((prev) => ({ ...prev, [a.name]: null }));
+          });
+      });
+    }
   };
 
   return (
@@ -375,7 +397,10 @@ export default function StatsPage() {
                       <div className="w-10 h-10 rounded-lg bg-zinc-800" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{r.item.title}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium truncate">{r.item.title}</p>
+                        <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">SINGLE</span>
+                      </div>
                       <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                       {r.updatedAt && (
                         <p className="text-[10px] text-zinc-500">
@@ -395,10 +420,23 @@ export default function StatsPage() {
                       setStatsListOpen(null);
                       router.push(`/home?q=${encodeURIComponent(a.name)}`);
                     }}
-                    className="flex items-center justify-between cursor-pointer"
+                    className="flex items-center justify-between cursor-pointer gap-3"
                   >
-                    <span className="text-sm font-medium">{a.name}</span>
-                    <span className="text-mtgold text-xs font-bold">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {artistPictures[a.name] ? (
+                        <img
+                          src={artistPictures[a.name]}
+                          alt=""
+                          className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-mtgold text-black font-bold text-xs flex items-center justify-center flex-shrink-0">
+                          {a.name.slice(0, 1).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="text-sm font-medium truncate">{a.name}</span>
+                    </div>
+                    <span className="text-mtgold text-xs font-bold flex-shrink-0">
                       {a.count} titre{a.count > 1 ? "s" : ""}
                     </span>
                   </div>
@@ -571,7 +609,10 @@ export default function StatsPage() {
                     <div className="w-10 h-10 rounded-lg bg-zinc-800" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{r.item.title}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium truncate">{r.item.title}</p>
+                      <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">SINGLE</span>
+                    </div>
                     <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
                       {r.updatedAt && (
                         <p className="text-[10px] text-zinc-500">
@@ -688,7 +729,7 @@ export default function StatsPage() {
       <RatingSheet
         item={ratingItem}
         userId={userId}
-        currentRating={undefined}
+        currentRating={ratingItem ? ratingItem.rating : undefined}
         onClose={() => setRatingItem(null)}
         onSaved={handleSingleSaved}
       />
