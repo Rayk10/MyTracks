@@ -413,6 +413,13 @@ export default function ProfilePage() {
       </div>
 
       <button
+        onClick={() => router.push("/faq")}
+        className="w-full border border-zinc-700 text-zinc-300 rounded-full py-3 font-semibold text-sm mb-3"
+      >
+        Aide &amp; FAQ
+      </button>
+
+      <button
         onClick={handleLogout}
         className="w-full border border-zinc-700 text-white rounded-full py-3 font-semibold text-sm"
       >
