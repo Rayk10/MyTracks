@@ -11,7 +11,7 @@ export default function Stars({ value, onChange, onChangeEnd, size = 20 }) {
   const computeValue = (clientX) => {
     const rect = containerRef.current.getBoundingClientRect();
     const ratio = (clientX - rect.left) / rect.width;
-    const raw = Math.max(0.5, Math.min(5, ratio * 5));
+    const raw = Math.max(0, Math.min(5, ratio * 5));
     return Math.round(raw * 2) / 2;
   };
 

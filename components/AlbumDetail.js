@@ -369,8 +369,8 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
     if (onSaved) onSaved(item.id, null);
   };
 
-  const resetTrackRating = async (index) => {
-    if (!window.confirm("Es-tu sûr de vouloir réinitialiser la note de ce titre ?")) {
+  const resetTrackRating = async (index, skipConfirm) => {
+    if (!skipConfirm && !window.confirm("Es-tu sûr de vouloir réinitialiser la note de ce titre ?")) {
       return;
     }
     const supabase = createClient();
@@ -591,17 +591,9 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
                 <Stars
                   value={trackRatings[t.index] || 0}
                   onChange={(v) => handleTrackPreview(t.index, v)}
-                  onChangeEnd={(v) => handleTrackRate(t.index, v)}
+                  onChangeEnd={(v) => (v === 0 ? resetTrackRating(t.index, true) : handleTrackRate(t.index, v))}
                   size={20}
                 />
-                {trackRatings[t.index] ? (
-                  <button
-                    onClick={() => resetTrackRating(t.index)}
-                    className="w-6 h-6 rounded-full bg-white/10 text-zinc-400 text-xs flex items-center justify-center flex-shrink-0 ml-1"
-                  >
-                    ✕
-                  </button>
-                ) : null}
               </div>
             ))}
             <audio ref={previewAudioRef} onEnded={() => setPreviewPlayingIndex(null)} />
@@ -648,7 +640,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
               <Stars
                 value={trackRatings[trackDetailOpen.index] || 0}
                 onChange={(v) => handleTrackPreview(trackDetailOpen.index, v)}
-                onChangeEnd={(v) => handleTrackRate(trackDetailOpen.index, v)}
+                onChangeEnd={(v) => (v === 0 ? resetTrackRating(trackDetailOpen.index, true) : handleTrackRate(trackDetailOpen.index, v))}
                 size={28}
               />
             </div>
