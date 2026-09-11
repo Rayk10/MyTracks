@@ -28,6 +28,15 @@ function ensureListener() {
   });
 }
 
+/**
+ * Vide la pile d'un coup, sans rien fermer une par une : a utiliser quand on quitte
+ * tout pour un onglet principal (barre du bas), qui doit toujours passer devant tout.
+ */
+export function resetOverlayStack() {
+  overlayStack = [];
+  pendingSyncPops = 0;
+}
+
 export default function useBackButtonClose(isOpen, onClose) {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;

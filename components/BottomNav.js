@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { HomeIcon, SearchIcon, StarIcon, StatsIcon, PersonIcon } from "@/components/icons";
+import { resetOverlayStack } from "@/hooks/useBackButtonClose";
 
 const TABS = [
   { key: "home", path: "/home", Icon: HomeIcon },
@@ -16,7 +17,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 px-4 pb-3 max-w-md mx-auto z-10">
+    <div className="fixed bottom-0 left-0 right-0 px-4 pb-3 max-w-md mx-auto z-[60]">
       <div className="flex items-center justify-around bg-zinc-900/95 backdrop-blur rounded-full px-3 py-2 shadow-lg">
         {TABS.map((tab) => {
           const active = pathname === tab.path || pathname.startsWith(tab.path + "/");
@@ -24,7 +25,10 @@ export default function BottomNav() {
           return (
             <button
               key={tab.key}
-              onClick={() => router.push(tab.path)}
+              onClick={() => {
+                resetOverlayStack();
+                router.push(tab.path);
+              }}
               className="flex flex-col items-center"
             >
               {active ? (
