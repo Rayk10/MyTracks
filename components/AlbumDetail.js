@@ -422,9 +422,8 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
                 />
               </div>
             ))}
+            <audio ref={previewAudioRef} onEnded={() => setPreviewPlayingIndex(null)} />
           </div>
-
-          <audio ref={previewAudioRef} onEnded={() => setPreviewPlayingIndex(null)} />
         )}
       </div>
 
