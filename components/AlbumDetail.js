@@ -292,7 +292,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
     }
 
     const values = Object.values(updated);
-    const avg = (values.reduce((s, v) => s + v, 0) / values.length) * 2;
+    const avg = Math.round(((values.reduce((s, v) => s + v, 0) / values.length) * 2) * 2) / 2;
     if (!manualOverride) {
       setDirectRating(avg);
       await saveAlbumRating(avg, comment, false);
@@ -302,7 +302,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const recalculateFromTracks = async () => {
     const values = Object.values(trackRatings);
     if (values.length === 0) return;
-    const avg = (values.reduce((s, v) => s + v, 0) / values.length) * 2;
+    const avg = Math.round(((values.reduce((s, v) => s + v, 0) / values.length) * 2) * 2) / 2;
     setDirectRating(avg);
     setManualOverride(false);
     await saveAlbumRating(avg, comment, false);
