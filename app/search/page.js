@@ -48,6 +48,11 @@ export default function SearchHubPage() {
   const [artistAlbums, setArtistAlbums] = useState([]);
   const [artistSingles, setArtistSingles] = useState([]);
   const [loadingArtist, setLoadingArtist] = useState(false);
+  const [artistFilter, setArtistFilter] = useState("all");
+  const [artistSortDesc, setArtistSortDesc] = useState(false);
+  const [artistQuery, setArtistQuery] = useState("");
+  const [artistSearchResults, setArtistSearchResults] = useState(null);
+  const [artistSearching, setArtistSearching] = useState(false);
 
   useBackButtonClose(!!selectedArtist, () => setSelectedArtist(null));
   useBackButtonClose(!!albumItem, () => setAlbumItem(null));
@@ -154,6 +159,10 @@ export default function SearchHubPage() {
     setLoadingArtist(true);
     setArtistAlbums([]);
     setArtistSingles([]);
+    setArtistFilter("all");
+    setArtistSortDesc(false);
+    setArtistQuery("");
+    setArtistSearchResults(null);
     try {
       const res = await fetch(
         "/api/deezer-artist?id=" + artist.artistId + "&name=" + encodeURIComponent(artist.name)
@@ -167,6 +176,31 @@ export default function SearchHubPage() {
     } finally {
       setLoadingArtist(false);
     }
+  };
+
+  const searchArtistTracks = async (e) => {
+    e.preventDefault();
+    if (!artistQuery.trim() || !selectedArtist) return;
+    setArtistSearching(true);
+    try {
+      const res = await fetch(
+        "/api/deezer-artist-tracks?artist=" +
+          encodeURIComponent(selectedArtist.name) +
+          "&q=" +
+          encodeURIComponent(artistQuery)
+      );
+      const data = await res.json();
+      setArtistSearchResults(data.tracks || []);
+    } catch (err) {
+      setArtistSearchResults([]);
+    } finally {
+      setArtistSearching(false);
+    }
+  };
+
+  const clearArtistSearch = () => {
+    setArtistQuery("");
+    setArtistSearchResults(null);
   };
 
   const openItem = (item) => {
@@ -407,42 +441,65 @@ export default function SearchHubPage() {
           </div>
 
           <div className="px-4 pt-5 pb-28">
-            <p className="text-lg font-extrabold mb-3">Projets</p>
-            {loadingArtist ? <Spinner size={20} /> : null}
-            {!loadingArtist && artistAlbums.length === 0 ? (
-              <p className="text-zinc-400 text-sm">Aucun projet trouvé pour cet artiste.</p>
-            ) : null}
-            <div className="grid grid-cols-2 gap-3">
-              {artistAlbums.map((item) => (
-                <div key={item.id} className="cursor-pointer" onClick={() => openItem(item)}>
-                  <div className="relative">
-                    {item.coverUrl ? (
-                      <img src={item.coverUrl} alt="" className="w-full aspect-square rounded-xl object-cover" />
-                    ) : (
-                      <div className="w-full aspect-square rounded-xl bg-zinc-800" />
-                    )}
-                    <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
-                      {item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM"}
-                    </span>
-                    {myRatings[item.id] !== undefined ? (
-                      <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">
-                        {myRatings[item.id]}/10
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="text-sm font-semibold mt-1.5 truncate">{item.title}</p>
-                  {item.releaseDate ? (
-                    <p className="text-xs text-zinc-400 truncate">{item.releaseDate.slice(0, 4)}</p>
-                  ) : null}
-                </div>
-              ))}
-            </div>
+            <form onSubmit={searchArtistTracks} className="flex gap-2 mb-4">
+              <input
+                value={artistQuery}
+                onChange={(e) => setArtistQuery(e.target.value)}
+                placeholder={`Chercher un titre de ${selectedArtist.name}...`}
+                className="flex-1 bg-white/[0.06] rounded-full px-4 py-2.5 text-sm outline-none placeholder:text-zinc-500"
+              />
+              {artistSearchResults !== null ? (
+                <button
+                  type="button"
+                  onClick={clearArtistSearch}
+                  className="border border-zinc-700 text-zinc-300 rounded-full px-4 py-2 text-sm font-bold"
+                >
+                  ×
+                </button>
+              ) : null}
+              <button
+                type="submit"
+                disabled={artistSearching}
+                className="bg-mtgold text-black rounded-full px-5 py-2 text-sm font-bold disabled:opacity-50"
+              >
+                {artistSearching ? "..." : "Go"}
+              </button>
+            </form>
 
-            {artistSingles.length > 0 ? (
+            {artistSearchResults === null && (
+              <div className="flex gap-2 mb-5">
+                {[
+                  { key: "all", label: "Tout" },
+                  { key: "albums", label: "Projets" },
+                  { key: "singles", label: "Singles" },
+                ].map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => setArtistFilter(f.key)}
+                    className={`flex-1 rounded-full py-2 text-xs font-bold ${
+                      artistFilter === f.key ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setArtistSortDesc(!artistSortDesc)}
+                  className="rounded-full py-2 px-3 text-xs font-bold bg-white/[0.06] text-zinc-300 flex-shrink-0"
+                >
+                  {artistSortDesc ? "↓ Récent" : "↑ Ancien"}
+                </button>
+              </div>
+            )}
+
+            {artistSearchResults !== null ? (
               <>
-                <p className="text-lg font-extrabold mb-3 mt-8">Singles</p>
+                {artistSearching ? <Spinner size={20} /> : null}
+                {!artistSearching && artistSearchResults.length === 0 ? (
+                  <p className="text-zinc-400 text-sm">Aucun titre trouvé pour cette recherche.</p>
+                ) : null}
                 <div className="flex flex-col gap-3">
-                  {artistSingles.map((item) => (
+                  {artistSearchResults.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2">
                       <div className="flex-shrink-0 cursor-pointer" onClick={() => openItem(item)}>
                         {item.coverUrl ? (
@@ -458,9 +515,7 @@ export default function SearchHubPage() {
                             SINGLE
                           </span>
                         </div>
-                        <p className="text-xs text-zinc-400 truncate">
-                          {item.releaseDate ? item.releaseDate.slice(0, 4) : "Titre populaire"}
-                        </p>
+                        <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
                       </div>
                       {item.previewUrl ? (
                         <button
@@ -477,7 +532,85 @@ export default function SearchHubPage() {
                   ))}
                 </div>
               </>
-            ) : null}
+            ) : (
+              <>
+                {(artistFilter === "all" || artistFilter === "albums") && (
+                  <>
+                    <p className="text-lg font-extrabold mb-3">Projets</p>
+                    {loadingArtist ? <Spinner size={20} /> : null}
+                    {!loadingArtist && artistAlbums.length === 0 ? (
+                      <p className="text-zinc-400 text-sm">Aucun projet trouvé pour cet artiste.</p>
+                    ) : null}
+                    <div className="grid grid-cols-2 gap-3">
+                      {(artistSortDesc ? [...artistAlbums].reverse() : artistAlbums).map((item) => (
+                        <div key={item.id} className="cursor-pointer" onClick={() => openItem(item)}>
+                          <div className="relative">
+                            {item.coverUrl ? (
+                              <img src={item.coverUrl} alt="" className="w-full aspect-square rounded-xl object-cover" />
+                            ) : (
+                              <div className="w-full aspect-square rounded-xl bg-zinc-800" />
+                            )}
+                            <span className="absolute top-2 left-2 bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5">
+                              {item.releaseType === "ep" ? "EP" : item.releaseType === "mixtape" ? "MIXTAPE" : "ALBUM"}
+                            </span>
+                            {myRatings[item.id] !== undefined ? (
+                              <span className="absolute bottom-2 right-2 bg-black/80 text-mtgold text-xs font-bold rounded px-1.5 py-0.5">
+                                {myRatings[item.id]}/10
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="text-sm font-semibold mt-1.5 truncate">{item.title}</p>
+                          {item.releaseDate ? (
+                            <p className="text-xs text-zinc-400 truncate">{item.releaseDate.slice(0, 4)}</p>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {(artistFilter === "all" || artistFilter === "singles") && artistSingles.length > 0 ? (
+                  <>
+                    <p className="text-lg font-extrabold mb-3 mt-8">Singles</p>
+                    <div className="flex flex-col gap-3">
+                      {(artistSortDesc ? [...artistSingles].reverse() : artistSingles).map((item) => (
+                        <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2">
+                          <div className="flex-shrink-0 cursor-pointer" onClick={() => openItem(item)}>
+                            {item.coverUrl ? (
+                              <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-zinc-800" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0 cursor-pointer" onClick={() => openItem(item)}>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-sm font-medium truncate">{item.title}</p>
+                              <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                                SINGLE
+                              </span>
+                            </div>
+                            <p className="text-xs text-zinc-400 truncate">
+                              {item.releaseDate ? item.releaseDate.slice(0, 4) : "Titre populaire"}
+                            </p>
+                          </div>
+                          {item.previewUrl ? (
+                            <button
+                              onClick={() => togglePreview(item)}
+                              className="w-8 h-8 rounded-full bg-mtgold text-black flex items-center justify-center flex-shrink-0 text-xs active:scale-90 transition-transform"
+                            >
+                              {playingId === item.id ? "II" : "▶"}
+                            </button>
+                          ) : null}
+                          {myRatings[item.id] !== undefined ? (
+                            <span className="text-mtgold text-xs font-bold flex-shrink-0">{myRatings[item.id]}/5</span>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+              </>
+            )}
           </div>
 
           <BottomNav />
