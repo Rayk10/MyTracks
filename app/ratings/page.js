@@ -295,7 +295,7 @@ export default function RatingsPage() {
         </div>
       )}
 
-      {subTab !== "lists" && (
+      {subTab !== "lists" && subTab !== "watchlist" && (
         <select
           value={sortMode}
           onChange={(e) => setSortMode(e.target.value)}
@@ -308,13 +308,13 @@ export default function RatingsPage() {
         </select>
       )}
 
-      {subTab !== "lists" && sorted.length === 0 && (
+      {subTab !== "lists" && subTab !== "watchlist" && sorted.length === 0 && (
         <p className="text-zinc-400 text-sm">
           Tu n&apos;as encore rien noté dans cette catégorie. Va noter un {subTab === "albums" ? "projet" : "titre"} depuis l&apos;accueil.
         </p>
       )}
 
-      {subTab !== "lists" && (
+      {subTab !== "lists" && subTab !== "watchlist" && (
         <div className="flex flex-col gap-3">
           {sorted.map((item) => (
             <div
@@ -349,19 +349,17 @@ export default function RatingsPage() {
       {subTab === "watchlist" && (
         <div className="flex flex-col gap-3">
           {watchlistItems.length > 1 && (
-            <div className="flex gap-2 mb-2 overflow-x-auto no-scrollbar">
+            <div className="flex gap-2 mb-2">
               {[
                 { key: "all", label: "Tout" },
-                { key: "album", label: "Album" },
-                { key: "ep", label: "EP" },
-                { key: "mixtape", label: "Mixtape" },
+                { key: "project", label: "Projet" },
                 { key: "single", label: "Single" },
               ].map((f) => (
                 <button
                   key={f.key}
                   onClick={() => setWatchlistFilter(f.key)}
-                  className={`flex-shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold ${
-                    watchlistFilter === f.key ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-400"
+                  className={`flex-1 rounded-full py-2 text-xs font-bold ${
+                    watchlistFilter === f.key ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300"
                   }`}
                 >
                   {f.label}
@@ -379,7 +377,7 @@ export default function RatingsPage() {
             .filter((item) => {
               if (watchlistFilter === "all") return true;
               if (watchlistFilter === "single") return item.type === "single";
-              return item.type === "album" && (item.releaseType || "album") === watchlistFilter;
+              return item.type === "album";
             })
             .map((item) => (
             <div

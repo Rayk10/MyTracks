@@ -465,6 +465,18 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
               />
             </div>
 
+            <WatchlistButton
+              userId={userId}
+              itemPayload={{
+                id: `${item.id}-track-${trackDetailOpen.index}`,
+                type: "single",
+                title: trackDetailOpen.title,
+                artist: item.artist,
+                cover_url: item.coverUrl,
+                preview_url: trackDetailOpen.previewUrl || null,
+              }}
+            />
+
             <StreamingLinks title={trackDetailOpen.title} artist={item.artist} deezerId={item.deezerId} />
           </div>
         </div>
