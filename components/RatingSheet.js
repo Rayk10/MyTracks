@@ -20,6 +20,8 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
   const [loadingComment, setLoadingComment] = useState(true);
   const [saveError, setSaveError] = useState("");
   const starsRef = useRef(null);
+  const audioRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
   const [draggingStars, setDraggingStars] = useState(false);
   const [artistOverlayOpen, setArtistOverlayOpen] = useState(false);
   const [parentAlbumItem, setParentAlbumItem] = useState(null);
@@ -52,7 +54,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
   const computeStarValue = (clientX) => {
     const rect = starsRef.current.getBoundingClientRect();
     const ratio = (clientX - rect.left) / rect.width;
-    const raw = Math.max(0.5, Math.min(5, ratio * 5));
+    const raw = Math.max(0, Math.min(5, ratio * 5));
     return Math.round(raw * 2) / 2;
   };
 
@@ -69,6 +71,9 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
 
   const handleStarsPointerUp = () => {
     setDraggingStars(false);
+    if (ratingValue === 0) {
+      resetRating(true);
+    }
   };
 
   const openParentAlbum = async () => {
@@ -150,8 +155,22 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
     }, 1200);
   };
 
-  const resetRating = async () => {
-    if (!window.confirm("Es-tu sûr de vouloir réinitialiser cette note ?")) {
+  const togglePreview = () => {
+    if (!item.previewUrl) return;
+    if (playing) {
+      if (audioRef.current) audioRef.current.pause();
+      setPlaying(false);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.src = item.previewUrl;
+        audioRef.current.play();
+      }
+      setPlaying(true);
+    }
+  };
+
+  const resetRating = async (skipConfirm) => {
+    if (!skipConfirm && !window.confirm("Es-tu sûr de vouloir réinitialiser cette note ?")) {
       return;
     }
     setSaving(true);
@@ -227,6 +246,17 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
           {item.artist}
           {item.releaseDate ? ` · ${item.releaseDate.slice(0, 4)}` : ""}
         </p>
+
+        <audio ref={audioRef} onEnded={() => setPlaying(false)} />
+
+        {item.previewUrl ? (
+          <button
+            onClick={togglePreview}
+            className="w-full flex items-center justify-center gap-2 bg-white/[0.06] rounded-full py-2.5 text-sm font-bold mb-4 active:scale-95 transition-transform"
+          >
+            {playing ? "❚❚ En lecture" : "▶ Ecouter l'extrait"}
+          </button>
+        ) : null}
 
         <CommunityRating itemId={item.id} maxScale={5} />
 
