@@ -7,9 +7,12 @@ import ShareButton from "@/components/ShareButton";
 import ListPickerButton from "@/components/ListPickerButton";
 import WatchlistButton from "@/components/WatchlistButton";
 import CommunityComments from "@/components/CommunityComments";
+import AlbumDetail from "@/components/AlbumDetail";
+import ArtistOverlay from "@/components/ArtistOverlay";
+import useBackButtonClose from "@/hooks/useBackButtonClose";
 import StreamingLinks from "@/components/StreamingLinks";
 
-export default function RatingSheet({ item, userId, currentRating, onClose, onSaved }) {
+export default function RatingSheet({ item, userId, currentRating, onClose, onSaved, disableArtistLink, disableAlbumLink }) {
   const [ratingValue, setRatingValue] = useState(2.5);
   const [comment, setComment] = useState("");
   const [saving, setSaving] = useState(false);
@@ -18,6 +21,9 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
   const [saveError, setSaveError] = useState("");
   const starsRef = useRef(null);
   const [draggingStars, setDraggingStars] = useState(false);
+  const [artistOverlayOpen, setArtistOverlayOpen] = useState(false);
+  const [parentAlbumItem, setParentAlbumItem] = useState(null);
+  const [loadingParentAlbum, setLoadingParentAlbum] = useState(false);
 
   useEffect(() => {
     if (!item || !userId) return;
@@ -36,6 +42,9 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
         setLoadingComment(false);
       });
   }, [item, userId, currentRating]);
+
+  useBackButtonClose(artistOverlayOpen, () => setArtistOverlayOpen(false));
+  useBackButtonClose(!!parentAlbumItem, () => setParentAlbumItem(null));
 
   if (!item) return null;
 
@@ -60,6 +69,30 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
   const handleStarsPointerUp = () => {
     setDraggingStars(false);
   };
+
+  const openParentAlbum = async () => {
+    const match = item.id.match(/^(.+)-track-\d+$/);
+    if (!match) return;
+    const albumId = match[1];
+
+    setLoadingParentAlbum(true);
+    const supabase = createClient();
+    const { data } = await supabase.from("catalog_items").select("*").eq("id", albumId).maybeSingle();
+    setLoadingParentAlbum(false);
+
+    if (data) {
+      setParentAlbumItem({
+        id: data.id,
+        type: "album",
+        title: data.title,
+        artist: data.artist,
+        coverUrl: data.cover_url,
+        deezerId: data.deezer_id,
+      });
+    }
+  };
+
+  const hasParentAlbum = /^(.+)-track-\d+$/.test(item.id);
 
   const save = async () => {
     setSaving(true);
@@ -136,12 +169,24 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
         </div>
 
         <div className="flex items-center justify-center gap-2 mb-1">
-          <p className="text-2xl font-extrabold text-center leading-tight">{item.title}</p>
+          <p
+            onClick={() => !disableAlbumLink && hasParentAlbum && openParentAlbum()}
+            className={`text-2xl font-extrabold text-center leading-tight ${
+              !disableAlbumLink && hasParentAlbum ? "cursor-pointer underline" : ""
+            }`}
+          >
+            {loadingParentAlbum ? "..." : item.title}
+          </p>
           <span className="bg-mtgold text-black text-[10px] font-bold rounded px-1.5 py-0.5 flex-shrink-0">
             SINGLE
           </span>
         </div>
-        <p className="text-sm text-zinc-400 text-center mb-6">
+        <p
+          onClick={() => !disableArtistLink && setArtistOverlayOpen(true)}
+          className={`text-sm text-zinc-400 text-center mb-6 ${
+            !disableArtistLink ? "cursor-pointer underline" : ""
+          }`}
+        >
           {item.artist}
           {item.releaseDate ? ` · ${item.releaseDate.slice(0, 4)}` : ""}
         </p>
@@ -242,6 +287,22 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
           {saving ? "..." : justSaved ? "✓ Enregistré" : "ENREGISTRER LA NOTE"}
         </button>
       </div>
+
+      {artistOverlayOpen && (
+        <ArtistOverlay
+          artistName={item.artist}
+          userId={userId}
+          onClose={() => setArtistOverlayOpen(false)}
+        />
+      )}
+
+      <AlbumDetail
+        item={parentAlbumItem}
+        userId={userId}
+        onClose={() => setParentAlbumItem(null)}
+        onSaved={() => {}}
+        disableArtistLink
+      />
     </div>
   );
 }

@@ -10,9 +10,10 @@ import ListPickerButton from "@/components/ListPickerButton";
 import StreamingLinks from "@/components/StreamingLinks";
 import useBackButtonClose from "@/hooks/useBackButtonClose";
 import CommunityComments from "@/components/CommunityComments";
+import ArtistOverlay from "@/components/ArtistOverlay";
 import WatchlistButton from "@/components/WatchlistButton";
 
-export default function AlbumDetail({ item, userId, onClose, onSaved }) {
+export default function AlbumDetail({ item, userId, onClose, onSaved, disableArtistLink }) {
   const [directRating, setDirectRating] = useState(5);
   const [comment, setComment] = useState("");
   const [trackRatings, setTrackRatings] = useState({}); // { index: rating }
@@ -29,6 +30,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const [releaseType, setReleaseType] = useState("album");
   const [saveError, setSaveError] = useState("");
   const [manualOverride, setManualOverride] = useState(false);
+  const [artistOverlayOpen, setArtistOverlayOpen] = useState(false);
 
   useEffect(() => {
     if (!item || !userId) return;
@@ -153,6 +155,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   }, [item, userId]);
 
   useBackButtonClose(!!trackDetailOpen, () => setTrackDetailOpen(null));
+  useBackButtonClose(artistOverlayOpen, () => setArtistOverlayOpen(false));
 
   if (!item) return null;
 
@@ -334,7 +337,12 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
         </div>
 
         <p className="text-2xl font-extrabold text-center leading-tight mb-1">{item.title}</p>
-        <p className="text-sm text-zinc-400 text-center mb-1">{item.artist}</p>
+        <p
+          onClick={() => !disableArtistLink && setArtistOverlayOpen(true)}
+          className={`text-sm text-zinc-400 text-center mb-1 ${!disableArtistLink ? "cursor-pointer underline" : ""}`}
+        >
+          {item.artist}
+        </p>
         {releaseDate ? (
           <p className="text-xs text-zinc-500 text-center mb-4">{releaseDate.slice(0, 4)}</p>
         ) : (
@@ -503,7 +511,12 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
                 ×
               </button>
             </div>
-            <p className="text-xs text-zinc-400 mb-5">{item.artist}</p>
+            <p
+              onClick={() => !disableArtistLink && setArtistOverlayOpen(true)}
+              className={`text-xs text-zinc-400 mb-5 ${!disableArtistLink ? "cursor-pointer underline" : ""}`}
+            >
+              {item.artist}
+            </p>
 
             {trackDetailOpen.previewUrl ? (
               <button
@@ -539,6 +552,14 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
             <StreamingLinks title={trackDetailOpen.title} artist={item.artist} deezerId={item.deezerId} />
           </div>
         </div>
+      )}
+
+      {artistOverlayOpen && (
+        <ArtistOverlay
+          artistName={item.artist}
+          userId={userId}
+          onClose={() => setArtistOverlayOpen(false)}
+        />
       )}
     </div>
   );
