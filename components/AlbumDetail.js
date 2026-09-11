@@ -237,6 +237,10 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
     }
   };
 
+  const handleTrackPreview = (index, value) => {
+    setTrackRatings((prev) => ({ ...prev, [index]: value }));
+  };
+
   const handleTrackRate = async (index, value) => {
     const updated = { ...trackRatings, [index]: value };
     setTrackRatings(updated);
@@ -467,7 +471,8 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
                 </span>
                 <Stars
                   value={trackRatings[t.index] || 0}
-                  onChange={(v) => handleTrackRate(t.index, v)}
+                  onChange={(v) => handleTrackPreview(t.index, v)}
+                  onChangeEnd={(v) => handleTrackRate(t.index, v)}
                   size={20}
                 />
               </div>
@@ -510,7 +515,8 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
             <div className="mb-5">
               <Stars
                 value={trackRatings[trackDetailOpen.index] || 0}
-                onChange={(v) => handleTrackRate(trackDetailOpen.index, v)}
+                onChange={(v) => handleTrackPreview(trackDetailOpen.index, v)}
+                onChangeEnd={(v) => handleTrackRate(trackDetailOpen.index, v)}
                 size={28}
               />
             </div>

@@ -2,10 +2,11 @@
 
 import { useRef, useState } from "react";
 
-export default function Stars({ value, onChange, size = 20 }) {
+export default function Stars({ value, onChange, onChangeEnd, size = 20 }) {
   const containerRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [previewValue, setPreviewValue] = useState(null);
+  const lastValueRef = useRef(value);
 
   const computeValue = (clientX) => {
     const rect = containerRef.current.getBoundingClientRect();
@@ -19,6 +20,7 @@ export default function Stars({ value, onChange, size = 20 }) {
     setDragging(true);
     const v = computeValue(e.clientX);
     setPreviewValue(v);
+    lastValueRef.current = v;
     onChange(v);
   };
 
@@ -26,12 +28,14 @@ export default function Stars({ value, onChange, size = 20 }) {
     if (!dragging) return;
     const v = computeValue(e.clientX);
     setPreviewValue(v);
+    lastValueRef.current = v;
     onChange(v);
   };
 
   const handlePointerUp = () => {
     setDragging(false);
     setPreviewValue(null);
+    if (onChangeEnd) onChangeEnd(lastValueRef.current);
   };
 
   const displayValue = previewValue !== null ? previewValue : value;
