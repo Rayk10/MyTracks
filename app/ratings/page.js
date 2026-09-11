@@ -255,10 +255,16 @@ export default function RatingsPage() {
 
       <div className="grid grid-cols-2 gap-2 mb-5">
         {[
-          { key: "albums", label: "Projets" },
-          { key: "singles", label: "Singles" },
-          { key: "watchlist", label: "À écouter" },
-          { key: "lists", label: "Listes" },
+          {
+            key: "albums",
+            label: `Projets (${ratedItems.filter((it) => it.type === "album").length})`,
+          },
+          {
+            key: "singles",
+            label: `Singles (${ratedItems.filter((it) => it.type === "single").length})`,
+          },
+          { key: "watchlist", label: `À écouter (${watchlistItems.length})` },
+          { key: "lists", label: `Listes (${lists.length})` },
         ].map((s) => (
           <button
             key={s.key}

@@ -183,13 +183,13 @@ export default function CreateItemModal({ userId, onClose, onCreated }) {
             onChange={(e) => setYear(e.target.value.replace(/\D/g, "").slice(0, 4))}
             placeholder="Annee"
             inputMode="numeric"
-            className="flex-1 bg-white/[0.06] rounded-lg px-4 py-2.5 text-sm outline-none"
+            className="flex-1 min-w-0 bg-white/[0.06] rounded-lg px-4 py-2.5 text-sm outline-none"
           />
           <input
             value={genre}
             onChange={(e) => setGenre(e.target.value)}
             placeholder="Genre"
-            className="flex-1 bg-white/[0.06] rounded-lg px-4 py-2.5 text-sm outline-none"
+            className="flex-1 min-w-0 bg-white/[0.06] rounded-lg px-4 py-2.5 text-sm outline-none"
           />
         </div>
 

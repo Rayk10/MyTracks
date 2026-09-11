@@ -12,6 +12,10 @@ export default function ProfilePage() {
   const [userId, setUserId] = useState(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState("");
+  const [editingPseudo, setEditingPseudo] = useState(false);
+  const [newPseudo, setNewPseudo] = useState("");
+  const [pseudoError, setPseudoError] = useState("");
+  const [savingPseudo, setSavingPseudo] = useState(false);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ albums: 0, tracks: 0 });
@@ -183,6 +187,35 @@ export default function ProfilePage() {
     setFriends((prev) => (prev.some((f) => f.id === friend.id) ? prev : [...prev, friend]));
   };
 
+  const savePseudo = async () => {
+    if (!newPseudo.trim() || !userId) return;
+    setSavingPseudo(true);
+    setPseudoError("");
+    const supabase = createClient();
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      setSavingPseudo(false);
+      setPseudoError("Ta session a expire. Reconnecte-toi puis reessaie.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ pseudo: newPseudo.trim() })
+      .eq("id", session.user.id);
+
+    setSavingPseudo(false);
+    if (error) {
+      setPseudoError(error.message);
+      return;
+    }
+    setProfile((prev) => ({ ...prev, pseudo: newPseudo.trim() }));
+    setEditingPseudo(false);
+  };
+
   const handleAvatarChange = async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file || !userId) return;
@@ -249,7 +282,44 @@ export default function ProfilePage() {
           <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
         </label>
         {avatarError ? <p className="text-red-400 text-xs mb-2">{avatarError}</p> : null}
-        <p className="text-xl font-extrabold">{profile ? profile.pseudo : ""}</p>
+
+        {editingPseudo ? (
+          <div className="flex items-center gap-2">
+            <input
+              autoFocus
+              value={newPseudo}
+              onChange={(e) => setNewPseudo(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && savePseudo()}
+              className="bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-1.5 text-base text-center outline-none"
+            />
+            <button
+              onClick={savePseudo}
+              disabled={savingPseudo}
+              className="bg-mtgold text-black rounded-lg px-3 py-1.5 text-sm font-bold disabled:opacity-50"
+            >
+              {savingPseudo ? "..." : "OK"}
+            </button>
+            <button
+              onClick={() => setEditingPseudo(false)}
+              className="bg-white/10 rounded-lg px-3 py-1.5 text-sm font-bold"
+            >
+              ×
+            </button>
+          </div>
+        ) : (
+          <div
+            onClick={() => {
+              setNewPseudo(profile ? profile.pseudo : "");
+              setEditingPseudo(true);
+              setPseudoError("");
+            }}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <p className="text-xl font-extrabold">{profile ? profile.pseudo : ""}</p>
+            <span className="text-zinc-500 text-sm">✎</span>
+          </div>
+        )}
+        {pseudoError ? <p className="text-red-400 text-xs mt-1">{pseudoError}</p> : null}
       </div>
 
       <div className="flex justify-center gap-8 mb-6">
@@ -271,23 +341,19 @@ export default function ProfilePage() {
         Messages
       </button>
 
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs uppercase tracking-wide text-zinc-500">Amis</p>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setFriendSearchOpen(true);
-              setFriendQuery("");
-              setFriendResults([]);
-              setFriendSearchDone(false);
-              setFriendSearchError("");
-            }}
-            className="w-7 h-7 rounded-full bg-mtgold text-black flex items-center justify-center text-sm font-bold"
-          >
-            +
-          </button>
-        </div>
-      </div>
+      <p className="text-xs uppercase tracking-wide text-zinc-500 mb-3">Amis</p>
+      <button
+        onClick={() => {
+          setFriendSearchOpen(true);
+          setFriendQuery("");
+          setFriendResults([]);
+          setFriendSearchDone(false);
+          setFriendSearchError("");
+        }}
+        className="w-full flex items-center justify-center gap-2 bg-white/[0.04] border border-dashed border-zinc-600 rounded-xl py-3 mb-5 text-sm font-bold text-mtgold"
+      >
+        + Ajouter un ami
+      </button>
 
       {friends.length === 0 ? (
         <p className="text-zinc-400 text-sm mb-8">
