@@ -68,6 +68,7 @@ export default function FriendProfilePage() {
       type: catalogItem.type,
       title: catalogItem.title,
       artist: catalogItem.artist,
+      artistId: catalogItem.artist_id,
       coverUrl: catalogItem.cover_url,
       deezerId: catalogItem.deezer_id,
       previewUrl: catalogItem.preview_url,

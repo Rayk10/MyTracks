@@ -45,6 +45,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
         type: "album",
         title: item.title,
         artist: item.artist,
+        artist_id: item.artistId || null,
         cover_url: item.coverUrl,
         deezer_id: item.deezerId ? String(item.deezerId) : item.deezer_id || null,
       });
@@ -184,6 +185,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
       type: "album",
       title: item.title,
       artist: item.artist,
+      artist_id: item.artistId || null,
       cover_url: item.coverUrl,
       deezer_id: item.deezerId ? String(item.deezerId) : item.deezer_id || null,
     });
@@ -222,9 +224,8 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
       setManualOverride(true);
       setJustSaved(true);
       setTimeout(() => {
-        onClose();
         setJustSaved(false);
-      }, 600);
+      }, 1200);
     }
   };
 
@@ -285,6 +286,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
         type: "single",
         title: trackInfo.title,
         artist: item.artist,
+        artist_id: item.artistId || null,
         cover_url: item.coverUrl,
         preview_url: trackInfo.previewUrl || null,
       });
@@ -378,6 +380,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
             release_type: releaseType,
             title: item.title,
             artist: item.artist,
+            artist_id: item.artistId || null,
             cover_url: item.coverUrl,
             deezer_id: item.deezerId ? String(item.deezerId) : item.deezer_id || null,
           }}
@@ -392,6 +395,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
               type: "album",
               title: item.title,
               artist: item.artist,
+              artist_id: item.artistId || null,
               cover_url: item.coverUrl,
               deezer_id: item.deezerId ? String(item.deezerId) : item.deezer_id || null,
             }}
@@ -545,6 +549,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
                 type: "single",
                 title: trackDetailOpen.title,
                 artist: item.artist,
+                artist_id: item.artistId || null,
                 cover_url: item.coverUrl,
                 preview_url: trackDetailOpen.previewUrl || null,
               }}

@@ -82,6 +82,7 @@ export default function SearchCategoryPage() {
             releaseType: r.item.release_type,
             title: r.item.title,
             artist: r.item.artist,
+            artistId: r.item.artist_id,
             coverUrl: r.item.cover_url,
             deezerId: r.item.deezer_id,
             previewUrl: r.item.preview_url,

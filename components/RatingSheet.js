@@ -115,6 +115,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
       type: item.type,
       title: item.title,
       artist: item.artist,
+      artist_id: item.artistId || null,
       cover_url: item.coverUrl,
       deezer_id: item.deezerId ? String(item.deezerId) : null,
       preview_url: item.previewUrl || null,
@@ -144,9 +145,8 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
     onSaved(item.id, ratingValue);
     setJustSaved(true);
     setTimeout(() => {
-      onClose();
       setJustSaved(false);
-    }, 600);
+    }, 1200);
   };
 
   return (
@@ -203,6 +203,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
             type: item.type,
             title: item.title,
             artist: item.artist,
+            artist_id: item.artistId || null,
             cover_url: item.coverUrl,
             deezer_id: item.deezerId ? String(item.deezerId) : null,
             preview_url: item.previewUrl || null,
@@ -218,6 +219,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
               type: item.type,
               title: item.title,
               artist: item.artist,
+              artist_id: item.artistId || null,
               cover_url: item.coverUrl,
               deezer_id: item.deezerId ? String(item.deezerId) : null,
               preview_url: item.previewUrl || null,

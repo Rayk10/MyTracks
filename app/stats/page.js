@@ -65,6 +65,7 @@ export default function StatsPage() {
       type: "album",
       title: catalogItem.title,
       artist: catalogItem.artist,
+      artistId: catalogItem.artist_id,
       coverUrl: catalogItem.cover_url,
       deezerId: catalogItem.deezer_id,
     });
@@ -76,6 +77,7 @@ export default function StatsPage() {
       type: "single",
       title: catalogItem.title,
       artist: catalogItem.artist,
+      artistId: catalogItem.artist_id,
       coverUrl: catalogItem.cover_url,
       deezerId: catalogItem.deezer_id,
       previewUrl: catalogItem.preview_url,
