@@ -48,6 +48,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
 
   if (!item) return null;
 
+  const canLinkArtist = !disableArtistLink && !!(item.artistId || item.deezerId);
   const computeStarValue = (clientX) => {
     const rect = starsRef.current.getBoundingClientRect();
     const ratio = (clientX - rect.left) / rect.width;
@@ -218,9 +219,9 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
           </span>
         </div>
         <p
-          onClick={() => !disableArtistLink && setArtistOverlayOpen(true)}
+          onClick={() => canLinkArtist && setArtistOverlayOpen(true)}
           className={`text-sm text-zinc-400 text-center mb-6 ${
-            !disableArtistLink ? "cursor-pointer underline" : ""
+            canLinkArtist ? "cursor-pointer underline" : ""
           }`}
         >
           {item.artist}

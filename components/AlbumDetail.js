@@ -160,6 +160,9 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
 
   if (!item) return null;
 
+  // On ne peut renvoyer vers la fiche d'un artiste que si l'item vient reellement
+  // de Deezer (sinon, une creation perso n'a aucun artiste reel a retrouver).
+  const canLinkArtist = !disableArtistLink && !!(item.artistId || item.deezerId || item.deezer_id);
   const trackValues = Object.values(trackRatings);
   const computed = trackValues.length > 0 ? trackValues.reduce((s, v) => s + v, 0) / trackValues.length * 2 : null;
   const displayedRating = computed !== null ? computed : directRating;
@@ -436,8 +439,8 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
 
         <p className="text-2xl font-extrabold text-center leading-tight mb-1">{item.title}</p>
         <p
-          onClick={() => !disableArtistLink && setArtistOverlayOpen(true)}
-          className={`text-sm text-zinc-400 text-center mb-1 ${!disableArtistLink ? "cursor-pointer underline" : ""}`}
+          onClick={() => canLinkArtist && setArtistOverlayOpen(true)}
+          className={`text-sm text-zinc-400 text-center mb-1 ${canLinkArtist ? "cursor-pointer underline" : ""}`}
         >
           {item.artist}
         </p>
@@ -620,8 +623,8 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
               </button>
             </div>
             <p
-              onClick={() => !disableArtistLink && setArtistOverlayOpen(true)}
-              className={`text-xs text-zinc-400 mb-5 ${!disableArtistLink ? "cursor-pointer underline" : ""}`}
+              onClick={() => canLinkArtist && setArtistOverlayOpen(true)}
+              className={`text-xs text-zinc-400 mb-5 ${canLinkArtist ? "cursor-pointer underline" : ""}`}
             >
               {item.artist}
             </p>
