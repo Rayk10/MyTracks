@@ -81,7 +81,6 @@ export default function StatsPage() {
       coverUrl: catalogItem.cover_url,
       deezerId: catalogItem.deezer_id,
       previewUrl: catalogItem.preview_url,
-      rating,
     });
   };
 
@@ -689,7 +688,7 @@ export default function StatsPage() {
       <RatingSheet
         item={ratingItem}
         userId={userId}
-        currentRating={ratingItem ? ratingItem.rating : undefined}
+        currentRating={undefined}
         onClose={() => setRatingItem(null)}
         onSaved={handleSingleSaved}
       />
