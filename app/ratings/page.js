@@ -19,6 +19,7 @@ export default function RatingsPage() {
   const [unratedCreations, setUnratedCreations] = useState([]);
   const [lists, setLists] = useState([]);
   const [watchlistItems, setWatchlistItems] = useState([]);
+  const [watchlistFilter, setWatchlistFilter] = useState("all"); // "all" | "album" | "ep" | "mixtape" | "single"
   const [subTab, setSubTab] = useState("albums");
   const [projectFilter, setProjectFilter] = useState("all"); // "all" | "album" | "ep" | "mixtape"
   const [sortMode, setSortMode] = useState("best");
@@ -252,7 +253,7 @@ export default function RatingsPage() {
         </div>
       )}
 
-      <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
+      <div className="grid grid-cols-2 gap-2 mb-5">
         {[
           { key: "albums", label: "Projets" },
           { key: "singles", label: "Singles" },
@@ -262,8 +263,10 @@ export default function RatingsPage() {
           <button
             key={s.key}
             onClick={() => setSubTab(s.key)}
-            className={`flex-shrink-0 rounded-full py-2 px-4 text-xs font-bold ${
-              subTab === s.key ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300"
+            className={`rounded-xl py-3 text-sm font-bold transition-colors ${
+              subTab === s.key
+                ? "bg-mtgold text-black shadow-[0_2px_10px_rgba(242,194,48,0.35)]"
+                : "bg-white/[0.06] text-zinc-300"
             }`}
           >
             {s.label}
@@ -345,12 +348,40 @@ export default function RatingsPage() {
 
       {subTab === "watchlist" && (
         <div className="flex flex-col gap-3">
+          {watchlistItems.length > 1 && (
+            <div className="flex gap-2 mb-2 overflow-x-auto no-scrollbar">
+              {[
+                { key: "all", label: "Tout" },
+                { key: "album", label: "Album" },
+                { key: "ep", label: "EP" },
+                { key: "mixtape", label: "Mixtape" },
+                { key: "single", label: "Single" },
+              ].map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setWatchlistFilter(f.key)}
+                  className={`flex-shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold ${
+                    watchlistFilter === f.key ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-400"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {watchlistItems.length === 0 && (
             <p className="text-zinc-400 text-sm">
               Rien dans ta liste "À écouter plus tard" pour l&apos;instant. Ajoute des titres depuis leur fiche.
             </p>
           )}
-          {watchlistItems.map((item) => (
+          {watchlistItems
+            .filter((item) => {
+              if (watchlistFilter === "all") return true;
+              if (watchlistFilter === "single") return item.type === "single";
+              return item.type === "album" && (item.releaseType || "album") === watchlistFilter;
+            })
+            .map((item) => (
             <div
               key={item.id}
               onClick={() => openItem(item)}
