@@ -153,6 +153,17 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
     setSaveError("");
     const supabase = createClient();
 
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setSaving(false);
+      setSaveError("Ta session a expire. Reconnecte-toi puis reessaie.");
+      return false;
+    }
+    const realUserId = session.user.id;
+
     const { error: catalogError } = await supabase.from("catalog_items").upsert({
       id: item.id,
       type: "album",
@@ -169,7 +180,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
 
     const { error } = await supabase.from("album_ratings").upsert(
       {
-        user_id: userId,
+        user_id: realUserId,
         item_id: item.id,
         rating,
         comment: newComment,
@@ -205,9 +216,19 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
     setSaveError("");
 
     const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setSaveError("Ta session a expire. Reconnecte-toi puis reessaie.");
+      return;
+    }
+    const realUserId = session.user.id;
+
     const { error: trackError } = await supabase.from("track_ratings").upsert(
       {
-        user_id: userId,
+        user_id: realUserId,
         item_id: item.id,
         track_index: index,
         rating: value,

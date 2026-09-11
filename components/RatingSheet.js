@@ -47,6 +47,17 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
     setSaveError("");
     const supabase = createClient();
 
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setSaving(false);
+      setSaveError("Ta session a expire. Reconnecte-toi puis reessaie.");
+      return;
+    }
+    const realUserId = session.user.id;
+
     const { error: catalogError } = await supabase.from("catalog_items").upsert({
       id: item.id,
       type: item.type,
@@ -65,7 +76,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
 
     const { error } = await supabase.from("album_ratings").upsert(
       {
-        user_id: userId,
+        user_id: realUserId,
         item_id: item.id,
         rating: ratingValue,
         comment,
