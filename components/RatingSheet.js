@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabaseClient";
 import CommunityRating from "@/components/CommunityRating";
 import ShareButton from "@/components/ShareButton";
 import ListPickerButton from "@/components/ListPickerButton";
+import WatchlistButton from "@/components/WatchlistButton";
 import StreamingLinks from "@/components/StreamingLinks";
 
 export default function RatingSheet({ item, userId, currentRating, onClose, onSaved }) {
@@ -145,6 +146,19 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
         </p>
 
         <CommunityRating itemId={item.id} maxScale={5} />
+
+        <WatchlistButton
+          userId={userId}
+          itemPayload={{
+            id: item.id,
+            type: item.type,
+            title: item.title,
+            artist: item.artist,
+            cover_url: item.coverUrl,
+            deezer_id: item.deezerId ? String(item.deezerId) : null,
+            preview_url: item.previewUrl || null,
+          }}
+        />
 
         <div className="flex gap-2 mb-4">
           <ShareButton title={item.title} artist={item.artist} />

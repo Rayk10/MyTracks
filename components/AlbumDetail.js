@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Spinner from "@/components/Spinner";
 import { createClient } from "@/lib/supabaseClient";
 import Stars from "@/components/Stars";
@@ -8,11 +8,16 @@ import CommunityRating from "@/components/CommunityRating";
 import ShareButton from "@/components/ShareButton";
 import ListPickerButton from "@/components/ListPickerButton";
 import StreamingLinks from "@/components/StreamingLinks";
+import useBackButtonClose from "@/hooks/useBackButtonClose";
+import WatchlistButton from "@/components/WatchlistButton";
 
 export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const [directRating, setDirectRating] = useState(5);
   const [comment, setComment] = useState("");
   const [trackRatings, setTrackRatings] = useState({}); // { index: rating }
+  const [trackDetailOpen, setTrackDetailOpen] = useState(null);
+  const [previewPlayingIndex, setPreviewPlayingIndex] = useState(null);
+  const previewAudioRef = useRef(null);
   const [tracks, setTracks] = useState([]);
   const [releaseDate, setReleaseDate] = useState(null);
   const [genres, setGenres] = useState([]);
@@ -143,6 +148,8 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
     };
   }, [item, userId]);
 
+  useBackButtonClose(!!trackDetailOpen, () => setTrackDetailOpen(null));
+
   if (!item) return null;
 
   const trackValues = Object.values(trackRatings);
@@ -208,6 +215,20 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       setTimeout(() => {
         onClose();
       }, 600);
+    }
+  };
+
+  const togglePreview = (track) => {
+    if (!track.previewUrl) return;
+    if (previewPlayingIndex === track.index) {
+      if (previewAudioRef.current) previewAudioRef.current.pause();
+      setPreviewPlayingIndex(null);
+    } else {
+      if (previewAudioRef.current) {
+        previewAudioRef.current.src = track.previewUrl;
+        previewAudioRef.current.play();
+      }
+      setPreviewPlayingIndex(track.index);
     }
   };
 
@@ -292,6 +313,19 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
 
         <CommunityRating itemId={item.id} maxScale={10} />
 
+        <WatchlistButton
+          userId={userId}
+          itemPayload={{
+            id: item.id,
+            type: "album",
+            release_type: releaseType,
+            title: item.title,
+            artist: item.artist,
+            cover_url: item.coverUrl,
+            deezer_id: item.deezerId ? String(item.deezerId) : item.deezer_id || null,
+          }}
+        />
+
         <div className="flex gap-2 mb-4">
           <ShareButton title={item.title} artist={item.artist} />
           <ListPickerButton
@@ -375,7 +409,10 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
             )}
             {tracks.map((t) => (
               <div key={t.index} className="flex items-center justify-between gap-3">
-                <span className="text-base text-zinc-300 truncate flex-1">
+                <span
+                  onClick={() => setTrackDetailOpen(t)}
+                  className="text-base text-zinc-300 truncate flex-1 cursor-pointer"
+                >
                   {t.index}. {t.title}
                 </span>
                 <Stars
@@ -386,8 +423,53 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
               </div>
             ))}
           </div>
+
+          <audio ref={previewAudioRef} onEnded={() => setPreviewPlayingIndex(null)} />
         )}
       </div>
+
+      {trackDetailOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center p-6 z-40"
+          onClick={() => setTrackDetailOpen(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-zinc-900 w-full max-w-sm rounded-2xl p-6 max-h-[80vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-bold text-base truncate flex-1">{trackDetailOpen.title}</p>
+              <button
+                onClick={() => setTrackDetailOpen(null)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-lg flex-shrink-0"
+              >
+                ×
+              </button>
+            </div>
+            <p className="text-xs text-zinc-400 mb-5">{item.artist}</p>
+
+            {trackDetailOpen.previewUrl ? (
+              <button
+                onClick={() => togglePreview(trackDetailOpen)}
+                className="w-full flex items-center justify-center gap-2 bg-mtgold text-black rounded-full py-3 font-bold mb-5 active:scale-95 transition-transform"
+              >
+                {previewPlayingIndex === trackDetailOpen.index ? "❚❚ En lecture" : "▶ Ecouter l'extrait"}
+              </button>
+            ) : null}
+
+            <p className="text-xs text-zinc-400 mb-3">Ta note du titre, sur 5</p>
+            <div className="mb-5">
+              <Stars
+                value={trackRatings[trackDetailOpen.index] || 0}
+                onChange={(v) => handleTrackRate(trackDetailOpen.index, v)}
+                size={28}
+              />
+            </div>
+
+            <StreamingLinks title={trackDetailOpen.title} artist={item.artist} deezerId={item.deezerId} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

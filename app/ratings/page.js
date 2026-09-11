@@ -18,6 +18,7 @@ export default function RatingsPage() {
   const [ratedItems, setRatedItems] = useState([]);
   const [unratedCreations, setUnratedCreations] = useState([]);
   const [lists, setLists] = useState([]);
+  const [watchlistItems, setWatchlistItems] = useState([]);
   const [subTab, setSubTab] = useState("albums");
   const [projectFilter, setProjectFilter] = useState("all"); // "all" | "album" | "ep" | "mixtape"
   const [sortMode, setSortMode] = useState("best");
@@ -97,6 +98,29 @@ export default function RatingsPage() {
     setLists(formatted);
   };
 
+  const loadWatchlist = async (uid) => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("watchlist")
+      .select("created_at, catalog_items(*)")
+      .eq("user_id", uid)
+      .order("created_at", { ascending: false });
+
+    const items = (data || [])
+      .filter((w) => w.catalog_items)
+      .map((w) => ({
+        id: w.catalog_items.id,
+        type: w.catalog_items.type,
+        releaseType: w.catalog_items.release_type,
+        title: w.catalog_items.title,
+        artist: w.catalog_items.artist,
+        coverUrl: w.catalog_items.cover_url,
+        deezerId: w.catalog_items.deezer_id,
+        previewUrl: w.catalog_items.preview_url,
+      }));
+    setWatchlistItems(items);
+  };
+
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -108,6 +132,7 @@ export default function RatingsPage() {
       const ratedList = await loadRatings(session.user.id);
       await loadUnratedCreations(session.user.id, ratedList);
       await loadLists(session.user.id);
+      await loadWatchlist(session.user.id);
       setLoading(false);
     });
   }, [router]);
@@ -227,16 +252,17 @@ export default function RatingsPage() {
         </div>
       )}
 
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
         {[
           { key: "albums", label: "Projets" },
           { key: "singles", label: "Singles" },
+          { key: "watchlist", label: "À écouter" },
           { key: "lists", label: "Listes" },
         ].map((s) => (
           <button
             key={s.key}
             onClick={() => setSubTab(s.key)}
-            className={`flex-1 rounded-full py-2 text-xs font-bold ${
+            className={`flex-shrink-0 rounded-full py-2 px-4 text-xs font-bold ${
               subTab === s.key ? "bg-mtgold text-black" : "bg-white/[0.06] text-zinc-300"
             }`}
           >
@@ -317,6 +343,44 @@ export default function RatingsPage() {
         </div>
       )}
 
+      {subTab === "watchlist" && (
+        <div className="flex flex-col gap-3">
+          {watchlistItems.length === 0 && (
+            <p className="text-zinc-400 text-sm">
+              Rien dans ta liste "À écouter plus tard" pour l&apos;instant. Ajoute des titres depuis leur fiche.
+            </p>
+          )}
+          {watchlistItems.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => openItem(item)}
+              className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-2 cursor-pointer"
+            >
+              {item.coverUrl ? (
+                <img src={item.coverUrl} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-12 h-12 rounded-lg bg-zinc-800 flex-shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-medium truncate">{item.title}</p>
+                  <span className="bg-mtgold text-black text-[9px] font-bold rounded px-1 py-0.5 flex-shrink-0">
+                    {item.type === "album"
+                      ? item.releaseType === "ep"
+                        ? "EP"
+                        : item.releaseType === "mixtape"
+                        ? "MIXTAPE"
+                        : "ALBUM"
+                      : "SINGLE"}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 truncate">{item.artist}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {subTab === "lists" && (
         <>
           {!creatingList ? (
@@ -382,14 +446,20 @@ export default function RatingsPage() {
         item={ratingItem}
         userId={userId}
         currentRating={ratingItem ? ratingItem.rating : undefined}
-        onClose={() => setRatingItem(null)}
+        onClose={() => {
+          setRatingItem(null);
+          if (userId) loadWatchlist(userId);
+        }}
         onSaved={handleRatingSaved}
       />
 
       <AlbumDetail
         item={albumItem}
         userId={userId}
-        onClose={() => setAlbumItem(null)}
+        onClose={() => {
+          setAlbumItem(null);
+          if (userId) loadWatchlist(userId);
+        }}
         onSaved={handleAlbumSaved}
       />
 
