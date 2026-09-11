@@ -223,6 +223,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
       setJustSaved(true);
       setTimeout(() => {
         onClose();
+        setJustSaved(false);
       }, 600);
     }
   };
@@ -557,6 +558,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
       {artistOverlayOpen && (
         <ArtistOverlay
           artistName={item.artist}
+          artistId={item.artistId}
           userId={userId}
           onClose={() => setArtistOverlayOpen(false)}
         />

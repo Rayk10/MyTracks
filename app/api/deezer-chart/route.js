@@ -1,32 +1,12 @@
 import { createClient } from "@/lib/supabaseClient";
 
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const name = searchParams.get("name");
-
-  if (!name) {
-    return Response.json({ error: "name manquant" }, { status: 400 });
-  }
-
+export async function GET() {
   try {
-    const genresRes = await fetch("https://api.deezer.com/genre");
-    const genresData = await genresRes.json();
-
-    const target = name.toLowerCase();
-    const match = (genresData.data || []).find((g) => {
-      const gname = (g.name || "").toLowerCase();
-      return gname === target || gname.includes(target) || target.includes(gname);
-    });
-
-    if (!match) {
-      return Response.json({ albums: [] });
-    }
-
-    const chartRes = await fetch(`https://api.deezer.com/chart/${match.id}/albums?limit=20`);
-    const chartData = await chartRes.json();
+    const res = await fetch("https://api.deezer.com/chart/0/albums?limit=10");
+    const data = await res.json();
 
     const seen = new Set();
-    const albums = (chartData.data || [])
+    const albums = (data.data || [])
       .filter((a) => {
         if (seen.has(a.id)) return false;
         seen.add(a.id);
@@ -66,6 +46,6 @@ export async function GET(request) {
 
     return Response.json({ albums });
   } catch (err) {
-    return Response.json({ error: "Erreur lors de la recuperation du genre" }, { status: 500 });
+    return Response.json({ error: "Erreur lors de la recuperation des tendances" }, { status: 500 });
   }
 }

@@ -145,6 +145,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
     setJustSaved(true);
     setTimeout(() => {
       onClose();
+      setJustSaved(false);
     }, 600);
   };
 
@@ -291,6 +292,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
       {artistOverlayOpen && (
         <ArtistOverlay
           artistName={item.artist}
+          artistId={item.artistId}
           userId={userId}
           onClose={() => setArtistOverlayOpen(false)}
         />

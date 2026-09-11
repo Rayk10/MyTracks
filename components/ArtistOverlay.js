@@ -7,7 +7,7 @@ import useBackButtonClose from "@/hooks/useBackButtonClose";
 import AlbumDetail from "@/components/AlbumDetail";
 import RatingSheet from "@/components/RatingSheet";
 
-export default function ArtistOverlay({ artistName, userId, onClose }) {
+export default function ArtistOverlay({ artistName, artistId, userId, onClose }) {
   const [loading, setLoading] = useState(true);
   const [artist, setArtist] = useState(null);
   const [albums, setAlbums] = useState([]);
@@ -32,7 +32,10 @@ export default function ArtistOverlay({ artistName, userId, onClose }) {
       setLoading(true);
 
       try {
-        const lookupRes = await fetch("/api/deezer-artist-lookup?name=" + encodeURIComponent(artistName));
+        const lookupUrl = artistId
+          ? "/api/deezer-artist-lookup?id=" + artistId
+          : "/api/deezer-artist-lookup?name=" + encodeURIComponent(artistName);
+        const lookupRes = await fetch(lookupUrl);
         const lookupData = await lookupRes.json();
         if (cancelled) return;
 
@@ -74,7 +77,7 @@ export default function ArtistOverlay({ artistName, userId, onClose }) {
     return () => {
       cancelled = true;
     };
-  }, [artistName, userId]);
+  }, [artistName, artistId, userId]);
 
   const openItem = (item) => {
     if (item.type === "album") {

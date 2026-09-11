@@ -1,12 +1,30 @@
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const name = searchParams.get("name");
-
-  if (!name) {
-    return Response.json({ artist: null });
-  }
+  const id = searchParams.get("id");
 
   try {
+    // Si on a deja le vrai identifiant Deezer de l'artiste, on le recupere directement
+    // (aucune ambiguite possible, contrairement a une recherche par nom).
+    if (id) {
+      const res = await fetch(`https://api.deezer.com/artist/${id}`);
+      const data = await res.json();
+      if (data && data.id) {
+        return Response.json({
+          artist: {
+            artistId: data.id,
+            name: data.name,
+            pictureUrl: data.picture_medium,
+            nbFan: data.nb_fan,
+          },
+        });
+      }
+    }
+
+    if (!name) {
+      return Response.json({ artist: null });
+    }
+
     const res = await fetch(`https://api.deezer.com/search/artist?q=${encodeURIComponent(name)}&limit=1`);
     const data = await res.json();
     const match = (data.data || [])[0];

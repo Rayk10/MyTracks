@@ -22,6 +22,7 @@ export async function GET(request) {
         type: "single",
         title: t.title,
         artist: t.artist ? t.artist.name : artistName,
+        artistId: t.artist ? t.artist.id : null,
         coverUrl: t.album ? t.album.cover_medium : null,
         previewUrl: t.preview || null,
       }));
