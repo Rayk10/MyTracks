@@ -27,6 +27,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const [justSaved, setJustSaved] = useState(false);
   const [releaseType, setReleaseType] = useState("album");
   const [saveError, setSaveError] = useState("");
+  const [manualOverride, setManualOverride] = useState(false);
 
   useEffect(() => {
     if (!item || !userId) return;
@@ -58,7 +59,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       const [ratingRes, trackRatingsRes, deezerRes] = await Promise.all([
         supabase
           .from("album_ratings")
-          .select("rating, comment")
+          .select("rating, comment, is_manual")
           .eq("user_id", userId)
           .eq("item_id", item.id)
           .maybeSingle(),
@@ -92,9 +93,11 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
       if (ratingRes.data) {
         setDirectRating(ratingRes.data.rating);
         setComment(ratingRes.data.comment || "");
+        setManualOverride(!!ratingRes.data.is_manual);
       } else {
         setDirectRating(5);
         setComment("");
+        setManualOverride(false);
       }
 
       const map = {};
@@ -156,7 +159,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   const computed = trackValues.length > 0 ? trackValues.reduce((s, v) => s + v, 0) / trackValues.length * 2 : null;
   const displayedRating = computed !== null ? computed : directRating;
 
-  const saveAlbumRating = async (rating, newComment) => {
+  const saveAlbumRating = async (rating, newComment, isManual) => {
     setSaving(true);
     setSaveError("");
     const supabase = createClient();
@@ -192,6 +195,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
         item_id: item.id,
         rating,
         comment: newComment,
+        is_manual: isManual,
       },
       { onConflict: "user_id,item_id" }
     );
@@ -209,8 +213,9 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
   };
 
   const handleSaveClick = async () => {
-    const ok = await saveAlbumRating(directRating, comment);
+    const ok = await saveAlbumRating(directRating, comment, true);
     if (ok) {
+      setManualOverride(true);
       setJustSaved(true);
       setTimeout(() => {
         onClose();
@@ -288,7 +293,19 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
 
     const values = Object.values(updated);
     const avg = (values.reduce((s, v) => s + v, 0) / values.length) * 2;
-    await saveAlbumRating(avg, comment);
+    if (!manualOverride) {
+      setDirectRating(avg);
+      await saveAlbumRating(avg, comment, false);
+    }
+  };
+
+  const recalculateFromTracks = async () => {
+    const values = Object.values(trackRatings);
+    if (values.length === 0) return;
+    const avg = (values.reduce((s, v) => s + v, 0) / values.length) * 2;
+    setDirectRating(avg);
+    setManualOverride(false);
+    await saveAlbumRating(avg, comment, false);
   };
 
   return (
@@ -368,32 +385,41 @@ export default function AlbumDetail({ item, userId, onClose, onSaved }) {
         <StreamingLinks title={item.title} artist={item.artist} deezerId={item.deezerId} />
 
         <div className="bg-white/[0.04] rounded-2xl p-4 mb-5">
-          <p className="text-xs text-zinc-400 mb-2">
-            {computed !== null
-              ? `Note de l'album (moyenne sur ${trackValues.length} titre${trackValues.length > 1 ? "s" : ""})`
-              : "Ta note d'album, sur 10"}
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-zinc-400">
+              {manualOverride
+                ? "Note manuelle"
+                : computed !== null
+                ? `Calculee automatiquement (${trackValues.length} titre${trackValues.length > 1 ? "s" : ""} note${trackValues.length > 1 ? "s" : ""})`
+                : "Ta note d'album, sur 10"}
+            </p>
+            {manualOverride && computed !== null && (
+              <button
+                onClick={recalculateFromTracks}
+                className="text-[11px] text-mtgold font-bold flex-shrink-0"
+              >
+                ↺ Recalculer
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-2xl font-extrabold text-mtgold w-12">{directRating}</span>
+            <input
+              type="range"
+              min={0.5}
+              max={10}
+              step={0.5}
+              value={directRating}
+              onChange={(e) => handleSliderChange(Number(e.target.value))}
+              className="flex-1 accent-mtgold"
+            />
+          </div>
+          <p className="text-[11px] text-zinc-500">
+            {manualOverride
+              ? "Tu as fixe cette note toi-meme, elle ne changera plus automatiquement."
+              : "Se recalcule automatiquement a chaque titre note. Ajuste-la et enregistre pour la fixer toi-meme."}
           </p>
-          {computed !== null ? (
-            <p className="text-3xl font-extrabold text-mtgold">{computed.toFixed(1)} / 10</p>
-          ) : (
-            <>
-              <div className="flex items-center gap-3 mb-1">
-                <span className="text-2xl font-extrabold text-mtgold w-12">{directRating}</span>
-                <input
-                  type="range"
-                  min={0.5}
-                  max={10}
-                  step={0.5}
-                  value={directRating}
-                  onChange={(e) => handleSliderChange(Number(e.target.value))}
-                  className="flex-1 accent-mtgold"
-                />
-              </div>
-              <p className="text-[11px] text-zinc-500">
-                Note automatiquement remplacee par la moyenne si tu notes des titres individuellement.
-              </p>
-            </>
-          )}
         </div>
 
         <p className="text-xs text-zinc-400 mb-2">Ton avis (optionnel)</p>
