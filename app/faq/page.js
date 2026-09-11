@@ -98,8 +98,14 @@ export default function FaqPage() {
         <Section title="Un souci ou une idée ?">
           <p>
             L&apos;app est en développement continu. Si quelque chose ne fonctionne pas comme
-            attendu, n&apos;hésite pas à en parler directement à la personne qui la développe.
+            attendu, ou si tu as une idée d&apos;amélioration, écris-nous à :
           </p>
+          <a
+            href="mailto:contact.mytracksmusic@gmail.com"
+            className="inline-block bg-mtgold text-black font-bold rounded-full px-4 py-2 text-sm"
+          >
+            contact.mytracksmusic@gmail.com
+          </a>
         </Section>
       </div>
 
