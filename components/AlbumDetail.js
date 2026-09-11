@@ -320,6 +320,10 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
   };
 
   const resetAlbumRating = async () => {
+    if (!window.confirm("Es-tu sûr de vouloir réinitialiser la note de cet album (et de tous ses titres) ?")) {
+      return;
+    }
+
     setSaving(true);
     setSaveError("");
     const supabase = createClient();
@@ -339,6 +343,19 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
       .eq("user_id", session.user.id)
       .eq("item_id", item.id);
 
+    // On efface aussi les notes de chaque titre individuel de cet album
+    await supabase
+      .from("track_ratings")
+      .delete()
+      .eq("user_id", session.user.id)
+      .eq("item_id", item.id);
+
+    await supabase
+      .from("album_ratings")
+      .delete()
+      .eq("user_id", session.user.id)
+      .like("item_id", `${item.id}-track-%`);
+
     setSaving(false);
     if (error) {
       setSaveError("Erreur (réinitialisation) : " + error.message);
@@ -348,10 +365,14 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
     setDirectRating(5);
     setComment("");
     setManualOverride(false);
+    setTrackRatings({});
     if (onSaved) onSaved(item.id, null);
   };
 
   const resetTrackRating = async (index) => {
+    if (!window.confirm("Es-tu sûr de vouloir réinitialiser la note de ce titre ?")) {
+      return;
+    }
     const supabase = createClient();
     const {
       data: { session },
@@ -540,7 +561,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
         <button
           onClick={resetAlbumRating}
           disabled={saving}
-          className="w-full text-red-400 text-sm font-bold py-3 mb-3 disabled:opacity-50"
+          className="w-full border border-red-500/40 text-red-400 bg-red-500/10 rounded-full py-3 text-sm font-bold mb-3 disabled:opacity-50 active:scale-95 transition-transform"
         >
           Réinitialiser la note de l&apos;album
         </button>
@@ -576,7 +597,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
                 {trackRatings[t.index] ? (
                   <button
                     onClick={() => resetTrackRating(t.index)}
-                    className="text-zinc-500 text-xs flex-shrink-0 ml-1"
+                    className="w-6 h-6 rounded-full bg-white/10 text-zinc-400 text-xs flex items-center justify-center flex-shrink-0 ml-1"
                   >
                     ✕
                   </button>
@@ -634,7 +655,7 @@ export default function AlbumDetail({ item, userId, onClose, onSaved, disableArt
             {trackRatings[trackDetailOpen.index] ? (
               <button
                 onClick={() => resetTrackRating(trackDetailOpen.index)}
-                className="text-red-400 text-xs font-bold mb-5"
+                className="w-full border border-red-500/40 text-red-400 bg-red-500/10 rounded-full py-2.5 text-xs font-bold mb-5 active:scale-95 transition-transform"
               >
                 Réinitialiser la note de ce titre
               </button>

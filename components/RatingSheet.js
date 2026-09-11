@@ -150,6 +150,9 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
   };
 
   const resetRating = async () => {
+    if (!window.confirm("Es-tu sûr de vouloir réinitialiser cette note ?")) {
+      return;
+    }
     setSaving(true);
     setSaveError("");
     const supabase = createClient();
@@ -326,7 +329,7 @@ export default function RatingSheet({ item, userId, currentRating, onClose, onSa
           <button
             onClick={resetRating}
             disabled={saving}
-            className="w-full text-red-400 text-sm font-bold py-3 disabled:opacity-50"
+            className="w-full border border-red-500/40 text-red-400 bg-red-500/10 rounded-full py-3 text-sm font-bold disabled:opacity-50 active:scale-95 transition-transform"
           >
             Réinitialiser la note
           </button>
