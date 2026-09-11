@@ -30,38 +30,58 @@ export async function GET(request) {
       return true;
     });
 
+    // Deezer liste parfois plusieurs editions du meme projet (standard, deluxe, collector...)
+    // avec des identifiants et des dates differentes. On ne garde que la meilleure version par titre.
+    const dedupeByTitle = (list, pickBest) => {
+      const byTitle = new Map();
+      for (const item of list) {
+        const key = item.title.trim().toLowerCase();
+        const existing = byTitle.get(key);
+        if (!existing || pickBest(item, existing) === item) {
+          byTitle.set(key, item);
+        }
+      }
+      return [...byTitle.values()];
+    };
+
     // Albums et EP (multi-titres, notes sur 10), tries du plus ancien au plus recent
-    const albums = rawReleases
-      .filter((a) => a.record_type !== "single")
-      .filter((a) => a.title && a.title.trim())
-      .map((a) => ({
-        id: `deezer-album-${a.id}`,
-        deezerId: a.id,
-        type: "album",
-        releaseType: a.record_type === "ep" ? "ep" : "album",
-        title: a.title,
-        artist: artistName,
-        coverUrl: a.cover_medium,
-        trackCount: a.nb_tracks,
-        releaseDate: a.release_date,
-      }))
-      .sort((x, y) => new Date(x.releaseDate || 0) - new Date(y.releaseDate || 0));
+    const albums = dedupeByTitle(
+      rawReleases
+        .filter((a) => a.record_type !== "single")
+        .filter((a) => a.title && a.title.trim())
+        .map((a) => ({
+          id: `deezer-album-${a.id}`,
+          deezerId: a.id,
+          type: "album",
+          releaseType: a.record_type === "ep" ? "ep" : "album",
+          title: a.title,
+          artist: artistName,
+          coverUrl: a.cover_medium,
+          trackCount: a.nb_tracks,
+          releaseDate: a.release_date,
+        })),
+      // on privilegie l'edition avec le plus de titres (souvent la deluxe/complete)
+      (a, b) => ((a.trackCount || 0) >= (b.trackCount || 0) ? a : b)
+    ).sort((x, y) => new Date(x.releaseDate || 0) - new Date(y.releaseDate || 0));
 
     // Vraies sorties single de l'artiste, triees du plus recent au plus ancien
-    const singles = rawReleases
-      .filter((a) => a.record_type === "single")
-      .filter((a) => a.title && a.title.trim())
-      .map((a) => ({
-        id: `deezer-single-${a.id}`,
-        deezerId: a.id,
-        type: "single",
-        title: a.title,
-        artist: artistName,
-        coverUrl: a.cover_medium,
-        releaseDate: a.release_date,
-        previewUrl: null,
-      }))
-      .sort((x, y) => new Date(y.releaseDate || 0) - new Date(x.releaseDate || 0));
+    const singles = dedupeByTitle(
+      rawReleases
+        .filter((a) => a.record_type === "single")
+        .filter((a) => a.title && a.title.trim())
+        .map((a) => ({
+          id: `deezer-single-${a.id}`,
+          deezerId: a.id,
+          type: "single",
+          title: a.title,
+          artist: artistName,
+          coverUrl: a.cover_medium,
+          releaseDate: a.release_date,
+          previewUrl: null,
+        })),
+      // on privilegie la sortie la plus ancienne (version originale plutot qu'un remix/edition ulterieure)
+      (a, b) => (new Date(a.releaseDate || 0) <= new Date(b.releaseDate || 0) ? a : b)
+    ).sort((x, y) => new Date(y.releaseDate || 0) - new Date(x.releaseDate || 0));
 
     if (albums.length > 0) {
       try {
