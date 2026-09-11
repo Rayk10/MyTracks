@@ -347,6 +347,11 @@ export default function StatsPage() {
                       </span>
                     </div>
                       <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                      {r.updatedAt && (
+                        <p className="text-[10px] text-zinc-500">
+                          Noté le {new Date(r.updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+                      )}
                     </div>
                     <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
                   </div>
@@ -375,6 +380,11 @@ export default function StatsPage() {
                       </span>
                     </div>
                       <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                      {r.updatedAt && (
+                        <p className="text-[10px] text-zinc-500">
+                          Noté le {new Date(r.updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+                      )}
                     </div>
                     <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
                   </div>
@@ -440,6 +450,11 @@ export default function StatsPage() {
                       </span>
                     </div>
                     <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                      {r.updatedAt && (
+                        <p className="text-[10px] text-zinc-500">
+                          Noté le {new Date(r.updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+                      )}
                   </div>
                   <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
                 </div>
@@ -499,6 +514,11 @@ export default function StatsPage() {
                       </span>
                     </div>
                     <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                      {r.updatedAt && (
+                        <p className="text-[10px] text-zinc-500">
+                          Noté le {new Date(r.updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+                      )}
                   </div>
                   <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
                 </div>
@@ -561,6 +581,11 @@ export default function StatsPage() {
                       </span>
                     </div>
                     <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                      {r.updatedAt && (
+                        <p className="text-[10px] text-zinc-500">
+                          Noté le {new Date(r.updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+                      )}
                   </div>
                   <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
                 </div>
@@ -647,6 +672,11 @@ export default function StatsPage() {
                       </span>
                     </div>
                       <p className="text-xs text-zinc-400 truncate">{r.item.artist}</p>
+                      {r.updatedAt && (
+                        <p className="text-[10px] text-zinc-500">
+                          Noté le {new Date(r.updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+                      )}
                     </div>
                     <span className="text-mtgold text-sm font-bold flex-shrink-0">{r.rating}</span>
                   </div>
